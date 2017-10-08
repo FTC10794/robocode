@@ -29,7 +29,7 @@ public class Teleop10794 extends OpMode
     private boolean servoStateLeftArm = false, servoStateRightArm = false,
             servoStateLeftWheel = false, servoStateRightWheel = false,
             servoStateShoulder = false, servoStateElbow = false;
-    private double servoPositionFlyAngle, servoPositionPlaid = 0;
+    private double servoPositionFlyAngle, servoPositionPlaid = .85;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -139,6 +139,7 @@ public class Teleop10794 extends OpMode
         if (gamepad1.dpad_right) {
             //not in use
         }
+        /*
         if (gamepad1.left_bumper) {
             if(servoStateLeftWheel) {
                 robot.servoLeftWheel.setPosition(.45);
@@ -155,11 +156,21 @@ public class Teleop10794 extends OpMode
             }
             servoStateRightWheel = !servoStateRightWheel;
         }
+        */
+
+        if (gamepad1.left_bumper) {
+            servoPositionPlaid = MotorFunctions.servoDecrement(servoPositionPlaid);
+            servoPositionPlaid = Range.clip(servoPositionPlaid, 0, .9);
+        }
+        if (gamepad1.right_bumper) {
+            servoPositionPlaid = MotorFunctions.servoIncrement(servoPositionPlaid);
+            servoPositionPlaid = Range.clip(servoPositionPlaid, 0, .9);
+        }
         if (gamepad1.left_trigger > 0.25) {
             if (servoStateShoulder) {
                 robot.servoShoulder.setPosition(0.1);
             } else {
-                robot.servoShoulder.setPosition(0.8);
+                robot.servoShoulder.setPosition(1);
             }
             servoStateShoulder = !servoStateShoulder;
         }

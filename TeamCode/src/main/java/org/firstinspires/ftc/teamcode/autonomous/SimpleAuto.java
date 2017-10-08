@@ -47,18 +47,22 @@ public class SimpleAuto extends LinearOpMode {
         robot.servoRightWheel.setPosition(.25);
 
         robot.servoLeftArm.setPosition(0);
-        robot.servoRightArm.setPosition(0);
+        robot.servoRightArm.setPosition(0.7);
 
         robot.servoFlyAngle.setPosition(1);
 
         robot.servoElbow.setPosition(0.95);
         robot.servoShoulder.setPosition(0.1);
 
-        robot.servoFeed.setPosition(.51);
+        robot.servoFeed.setPosition(.498);
+
+        robot.servoPlaid.setPosition(.85);
 
         telemetry.addData("Servos: ", "Initialized");
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+
+        sleep(5000);
         robot.motorLift.setPower(0);
         robot.servoFlyAngle.setPosition(0);
         sleep(500);
@@ -79,9 +83,9 @@ public class SimpleAuto extends LinearOpMode {
 
         telemetry.addData("Status", "Driving");
         telemetry.update();
-        encoderDrive(1.0, 25, 25, 1);
+        encoderDrive(1.0, 30, 30, 1);
 
-        encoderDrive(1.0, 31, 31, 1);
+        encoderDrive(1.0, 35, 35, 1);
     }
 
     public void encoderDrive(double speed,
