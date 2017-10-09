@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 
-import org.firstinspires.ftc.teamcode.libs.Robot;
+import org.firstinspires.ftc.teamcode.libs.Robot_1617;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,7 +23,7 @@ public class Teleop10794 extends OpMode
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
 
-    private Robot robot;
+    private Robot_1617 robot;
     private MotorFunctions motorFunctions;
 
     private boolean servoStateLeftArm = false, servoStateRightArm = false,
@@ -42,7 +42,7 @@ public class Teleop10794 extends OpMode
          * Initializes the library functions
          * Robot hardware and motor functions
          */
-        robot = new Robot(hardwareMap);
+        robot = new Robot_1617(hardwareMap);
         motorFunctions = new MotorFunctions(-1, 1, 0, 1, .05);
 
         //servo wheels are flipped in configuration file

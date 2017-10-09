@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
-import org.firstinspires.ftc.teamcode.libs.Robot;
+import org.firstinspires.ftc.teamcode.libs.Robot_1617;
 
 /**
  * Created by Natalie on 11/6/16.
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.libs.Robot;
 @Autonomous(name="Simple 30/45 pt", group="Autonmous")
 public class SimpleAuto extends LinearOpMode {
 
-    private Robot robot;
+    private Robot_1617 robot;
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -39,7 +39,7 @@ public class SimpleAuto extends LinearOpMode {
          * Initializes the library functions
          * Robot hardware and motor functions
          */
-        robot = new Robot(hardwareMap);
+        robot = new Robot_1617(hardwareMap);
         motorFunctions = new MotorFunctions(-1, 1, 0, 1, .05);
 
         //servo wheels are flipped in configuration file
