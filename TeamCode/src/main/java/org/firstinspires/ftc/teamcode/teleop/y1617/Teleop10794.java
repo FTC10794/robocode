@@ -1,23 +1,17 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.teleop.y1617;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 
-import org.firstinspires.ftc.teamcode.libs.Robot_1617;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import org.firstinspires.ftc.teamcode.libs.y1617.Robot_1617;
 
 @TeleOp(name="10794 Teleop", group="Teleop")  // @Autonomous(...) is the other common choice
-//@Disabled
+@Disabled
 public class Teleop10794 extends OpMode
 {
     /* Declare OpMode members. */

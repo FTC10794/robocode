@@ -1,18 +1,20 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.autonomous.y1617;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
-import org.firstinspires.ftc.teamcode.libs.Robot_1617;
+import org.firstinspires.ftc.teamcode.libs.y1617.Robot_1617;
 
 /**
  * Created by Natalie on 11/6/16.
  */
 
 @Autonomous(name="Simple 30/45 pt", group="Autonmous")
+@Disabled
 public class SimpleAuto extends LinearOpMode {
 
     private Robot_1617 robot;

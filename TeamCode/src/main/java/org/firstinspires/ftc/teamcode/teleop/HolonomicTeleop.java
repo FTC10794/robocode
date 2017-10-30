@@ -26,6 +26,9 @@ public class HolonomicTeleop extends OpMode {
     private Robot robot;
     private MotorFunctions motorFunctions;
 
+    private double posBlockSlide = 0,
+                   posBlockTurn = 0;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -38,10 +41,18 @@ public class HolonomicTeleop extends OpMode {
          * Robot hardware and motor functions
          */
         robot = new Robot(hardwareMap);
-        motorFunctions = new MotorFunctions();
+        motorFunctions = new MotorFunctions(-1, 1, 0, 1, .01);
 
-        //servo wheels initial positions
+        //servo motors initial positions
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
+        robot.servoRotator.setPosition(0.0833);
+        robot.servoSlide.setPosition(0);
 
+        robot.servoRelicArm.setPosition(1);
+        robot.servoRelicClaw.setPosition(0);
+
+        robot.servoJewelArm.setPosition(0);
     }
 
     /*
@@ -59,7 +70,6 @@ public class HolonomicTeleop extends OpMode {
     @Override
     public void start() {
         // servo initial positions
-
         runtime.reset();
     }
 
@@ -83,26 +93,34 @@ public class HolonomicTeleop extends OpMode {
         robot.motorBackLeft.setPower(motor_power[2]);
         robot.motorBackRight.setPower(motor_power[3]);
 
+        robot.motorLift.setPower(Range.clip(gamepad2.right_stick_y, -0.55, 0.55));
+
         /**
          * Gamepad 1
          */
         if (gamepad1.a) {
-            //not in use
-        }
-        if (gamepad1.b) {
-            //not in use
+            // Relic Arm Down
+            robot.servoRelicArm.setPosition(1);
         }
         if (gamepad1.x) {
-            //not in use
+            // Relic Claw In
+            robot.servoRelicClaw.setPosition(.55);
+        }
+        if (gamepad1.b) {
+            // Relic Claw Out
+            robot.servoRelicClaw.setPosition(.5);
         }
         if (gamepad1.y) {
-            // not in use
+            // Relic Arm Up
+            robot.servoRelicArm.setPosition(0);
         }
         if (gamepad1.dpad_up) {
-            // not in use
+            // Jewel Arm Up
+            robot.servoJewelArm.setPosition(0);
         }
         if (gamepad1.dpad_down) {
-            //not in use
+            // Jewel Arm Down
+            robot.servoJewelArm.setPosition(1);
         }
         if (gamepad1.dpad_left) {
             //not in use
@@ -118,15 +136,19 @@ public class HolonomicTeleop extends OpMode {
         }
         if (gamepad1.left_bumper) {
             // not in use
+            robot.motorSlide.setPower(0);
         }
         if (gamepad1.right_bumper) {
             // not in use
+            robot.motorSlide.setPower(0);
         }
         if (gamepad1.left_trigger > 0.25) {
-            // not in use
+            // Relic Slide
+            robot.motorSlide.setPower(.5);
         }
         if (gamepad1.right_trigger > 0.25) {
-            // not in use
+            // Relic Slide
+            robot.motorSlide.setPower(-0.25);
         }
 
         /**
@@ -134,34 +156,50 @@ public class HolonomicTeleop extends OpMode {
          */
 
         if (gamepad2.a) {
-            // not in use
+            // flapper in
+            robot.servoLeftPaddle.setPosition(.5);
+            robot.servoRightPaddle.setPosition(.5);
         }
         if (gamepad2.y) {
-            // not in use
+            //center rotator
+            robot.servoRotator.setPosition(0.0833);
         }
         if (gamepad2.x) {
             // not in use
         }
         if (gamepad2.b) {
-            // not in use
+            // flapper out
+            robot.servoLeftPaddle.setPosition(0);
+            robot.servoRightPaddle.setPosition(1);
         }
         if (gamepad2.dpad_up) {
-            // not in use
+            // not in use (TEST)
+//            posBlockSlide = MotorFunctions.servo(posBlockSlide, -0.001);
+            robot.servoSlide.setPosition(.4);
         }
         if (gamepad2.dpad_down) {
-            // not in use
+            // not in use (TEST)
+            robot.servoSlide.setPosition(0);
         }
         if (gamepad2.dpad_left) {
-            // not in use
+            // slide out
+            posBlockSlide = MotorFunctions.servoIncrement(posBlockSlide);
+            robot.servoSlide.setPosition(posBlockSlide);
         }
         if (gamepad2.dpad_right) {
-            // not in use
+            // slide out
+            posBlockSlide = MotorFunctions.servoDecrement(posBlockSlide);
+            robot.servoSlide.setPosition(posBlockSlide);
         }
         if (gamepad2.left_bumper) {
-            // not in use
+            // turn left
+//            posBlockTurn = MotorFunctions.servo(posBlockTurn, .005, 0, 0.25);
+            robot.servoRotator.setPosition(.1533);
         }
         if (gamepad2.right_bumper) {
-            // not in use
+            // turn right
+//            posBlockTurn = MotorFunctions.servo(posBlockTurn, -0.005, 0, 0.25);
+            robot.servoRotator.setPosition(.005);
         }
         if (gamepad2.left_trigger > 0.1) {
             // not in use
@@ -169,6 +207,7 @@ public class HolonomicTeleop extends OpMode {
         if (gamepad2.right_trigger > 0.1) {
             // not in use
         }
+
     }
 
     /**
