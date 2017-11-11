@@ -27,7 +27,7 @@ public class HolonomicTeleop extends OpMode {
     private MotorFunctions motorFunctions;
 
     private double posBlockSlide = 0,
-                   posRelicArm = 0;
+            posRelicArm = 0;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -93,7 +93,7 @@ public class HolonomicTeleop extends OpMode {
         robot.motorBackLeft.setPower(motor_power[2]);
         robot.motorBackRight.setPower(motor_power[3]);
 
-        robot.motorLift.setPower(Range.clip(gamepad2.right_stick_y, -0.55, 0.55));
+        robot.motorLift.setPower(Range.clip(gamepad2.left_stick_y, -0.55, 0.55));
 
         /**
          * Gamepad 1
@@ -197,7 +197,8 @@ public class HolonomicTeleop extends OpMode {
         if (gamepad2.right_bumper) {
             // turn right
 //            posBlockTurn = MotorFunctions.servo(posBlockTurn, -0.005, 0, 0.25);
-            robot.servoRotator.setPosition(.005);
+            //was last at .005 but it turned to much so i chanched it to slightly highger
+            robot.servoRotator.setPosition(.010);
         }
         if (gamepad2.left_trigger > 0.1) {
             // not in use
