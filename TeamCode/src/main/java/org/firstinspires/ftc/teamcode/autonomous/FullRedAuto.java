@@ -94,28 +94,42 @@ public class FullRedAuto extends LinearOpMode {
      */
     public void jewelDetection() {
         telemetry.addData(">", "Jewel Detection");
+        final int numTries = 3;
+
         //bring down the arm
         robot.servoJewelArm.setPosition(.85);
+        sleep(1000);
 
         // color sensor
-        if (robot.sensorColor.blue() > robot.sensorColor.red()) {
-            telemetry.addData(">> Color: ", "Blue");
+        for (int i = 0; i < numTries; i++) {
+            if (robot.sensorColor.blue() < robot.sensorColor.red()) {
+                telemetry.addData(">> Color: ", "Blue");
 
-            // drive forwards
-            double[] motorSpeed = holonomicAuto(.25, 270, 0);
-            holonomicHold(motorSpeed, .25);
-        } else {
-            telemetry.addData(">> Color:", "Red");
+                // drive forwards
+                drive(270, .35);
+                break;
+            } else if (robot.sensorColor.blue() > robot.sensorColor.red()) {
+                telemetry.addData(">> Color:", "Red");
 
-            // drive backwards
-            double[] motorSpeed = holonomicAuto(.25, 90, 0);
-            holonomicHold(motorSpeed, .25);
+                // drive backwards
+                drive(90, .35);
+                break;
+            } else {
+                sleep(500);
+            }
         }
+        sleep(500);
         robot.servoJewelArm.setPosition(0);
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Control Functions
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
-     * Drive Straight
+     * Drive "Straight"
      * @param dir direction of travel
      * @param holdTime time to hold
      */

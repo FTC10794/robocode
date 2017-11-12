@@ -19,7 +19,7 @@ import java.util.Date;
 
 
 @Autonomous(name="Jack's Test Auto", group="Encoder")
-//@Disabled
+@Disabled
 public class jacksTestAuto extends OpMode {
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();

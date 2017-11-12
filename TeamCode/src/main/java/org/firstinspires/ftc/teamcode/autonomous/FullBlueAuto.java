@@ -41,10 +41,10 @@ public class FullBlueAuto extends LinearOpMode {
         initialize();
         blockPickup();
         jewelDetection();
-        drive(90, 2);
-        // turn 180 degrees
-        drive(180, .5);
+        driveToLocker();
+        blockDeposit();
 
+        sleep(5000);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,34 +94,70 @@ public class FullBlueAuto extends LinearOpMode {
      */
     public void jewelDetection() {
         telemetry.addData(">", "Jewel Detection");
+        final int numTries = 3;
+
         //bring down the arm
         robot.servoJewelArm.setPosition(.85);
+        sleep(1000);
 
         // color sensor
-        if (robot.sensorColor.blue() > robot.sensorColor.red()) {
-            telemetry.addData(">> Color: ", "Blue");
+        for (int i = 0; i < numTries; i++) {
+            if (robot.sensorColor.blue() > robot.sensorColor.red()) {
+                telemetry.addData(">> Color: ", "Blue");
 
-            // drive forwards
-            double[] motorSpeed = holonomicAuto(.25, 270, 0);
-            holonomicHold(motorSpeed, .25);
-        } else {
-            telemetry.addData(">> Color:", "Red");
+                // drive forwards
+                drive(270, .35);
+                break;
+            } else if (robot.sensorColor.blue() < robot.sensorColor.red()) {
+                telemetry.addData(">> Color:", "Red");
 
-            // drive backwards
-            double[] motorSpeed = holonomicAuto(.25, 90, 0);
-            holonomicHold(motorSpeed, .25);
+                // drive backwards
+                drive(90, .35);
+                break;
+            } else {
+                sleep(500);
+            }
         }
+        sleep(500);
         robot.servoJewelArm.setPosition(0);
     }
 
+    public void driveToLocker() {
+        // drive to cryptolocker
+        drive(90, 2);
+
+        // turn 180 degrees to face cryptolocker
+
+        // drive forward
+        drive(180, .5);
+    }
+
+    public void blockDeposit() {
+
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Control Functions
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
-     * Drive Straight
+     * Drive "Straight"
      * @param dir direction of travel
      * @param holdTime time to hold
      */
     public void drive(double dir, double holdTime) {
         double[] motorSpeed = holonomicAuto(1, dir, 0);
         holonomicHold(motorSpeed, holdTime);
+    }
+
+    /**
+     * Turn the robot
+     * @param angle angle to turn at
+     */
+    public void turn(double angle) {
+
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
