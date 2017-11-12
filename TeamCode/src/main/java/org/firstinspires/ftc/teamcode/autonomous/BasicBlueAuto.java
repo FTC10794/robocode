@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
@@ -10,11 +9,10 @@ import org.firstinspires.ftc.teamcode.libs.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name="Basic Autonomous", group="Autonomous")
-@Disabled
-public class BasicAuto extends LinearOpMode {
+@Autonomous(name="Basic Blue Autonomous", group="Blue Autonomous")
+//@Disabled
+public class BasicBlueAuto extends LinearOpMode {
     boolean isActive;
-    boolean isBlue = false;
     private ElapsedTime     runtime                 = new ElapsedTime();
 
     private Robot           robot;
@@ -71,19 +69,6 @@ public class BasicAuto extends LinearOpMode {
 
         robot.servoJewelArm.setPosition(0);
         sleep(1000);
-    }
-
-    public void colorDetection() {
-        final int numTries = 3;
-        for (int i = 0; i < numTries; i++) {
-            if (robot.sensorColor.blue() > robot.sensorColor.red()) {
-                isBlue = true;
-            } else if (robot.sensorColor.red() > robot.sensorColor.blue()) {
-                isBlue = false;
-            } else {
-                sleep(1000);
-            }
-        }
     }
 
     /**

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
@@ -10,18 +9,17 @@ import org.firstinspires.ftc.teamcode.libs.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name="Basic Autonomous", group="Autonomous")
-@Disabled
-public class BasicAuto extends LinearOpMode {
+@Autonomous(name="Full Blue Autonomous", group="Blue Autonomous")
+//@Disabled
+public class FullBlueAuto extends LinearOpMode {
     boolean isActive;
-    boolean isBlue = false;
     private ElapsedTime     runtime                 = new ElapsedTime();
 
     private Robot           robot;
     private MotorFunctions  motorFunctions;
 
     private double          posBlockSlide           = 0,
-            posRelicArm             = 0;
+                            posRelicArm             = 0;
 
     static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
     static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
@@ -43,9 +41,10 @@ public class BasicAuto extends LinearOpMode {
         initialize();
         blockPickup();
         jewelDetection();
+        driveToLocker();
+        blockDeposit();
 
-        sleep(10000);
-
+        sleep(5000);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,19 +70,6 @@ public class BasicAuto extends LinearOpMode {
 
         robot.servoJewelArm.setPosition(0);
         sleep(1000);
-    }
-
-    public void colorDetection() {
-        final int numTries = 3;
-        for (int i = 0; i < numTries; i++) {
-            if (robot.sensorColor.blue() > robot.sensorColor.red()) {
-                isBlue = true;
-            } else if (robot.sensorColor.red() > robot.sensorColor.blue()) {
-                isBlue = false;
-            } else {
-                sleep(1000);
-            }
-        }
     }
 
     /**
@@ -136,6 +122,20 @@ public class BasicAuto extends LinearOpMode {
         robot.servoJewelArm.setPosition(0);
     }
 
+    public void driveToLocker() {
+        // drive to cryptolocker
+        drive(90, 2);
+
+        // turn 180 degrees to face cryptolocker
+
+        // drive forward
+        drive(180, .5);
+    }
+
+    public void blockDeposit() {
+
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Control Functions
@@ -150,6 +150,14 @@ public class BasicAuto extends LinearOpMode {
     public void drive(double dir, double holdTime) {
         double[] motorSpeed = holonomicAuto(1, dir, 0);
         holonomicHold(motorSpeed, holdTime);
+    }
+
+    /**
+     * Turn the robot
+     * @param angle angle to turn at
+     */
+    public void turn(double angle) {
+
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

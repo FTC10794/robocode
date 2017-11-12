@@ -1,5 +1,7 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.autonomous;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -18,8 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-@TeleOp(name="JacksAuto", group="Autonomous")  // @Autonomous(...) is the other common choice
-//@Disabled
+@Autonomous(name="Jack's Test Auto", group="Encoder")
+@Disabled
 public class jacksTestAuto extends OpMode {
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();

@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.libs;
 
+import android.graphics.Color;
+
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
@@ -34,6 +37,8 @@ public class Robot {
     public Servo servoJewelArm;
 
     // References to sensors
+    public ColorSensor sensorColor;
+    public ModernRoboticsI2cGyro sensorGyro;
 
     /**
      * Robot class constructor
@@ -70,6 +75,10 @@ public class Robot {
         servoRelicClaw = hardwareMap.servo.get("claw");
 
         servoJewelArm = hardwareMap.servo.get("jewel");
+
+        // Initialize Sensors
+        sensorColor = hardwareMap.colorSensor.get("color");
+        sensorGyro = (ModernRoboticsI2cGyro)hardwareMap.gyroSensor.get("gyro");
     }
 
     //any other hardware methods go here
