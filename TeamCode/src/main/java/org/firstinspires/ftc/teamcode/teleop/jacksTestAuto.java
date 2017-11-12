@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -75,9 +76,6 @@ public class jacksTestAuto extends OpMode {
         sleep(1000);
         //set motor lift up
         robot.motorLift.setPower(-0.50);
-        //sleep(500);
-        //set motor lift down/stay
-        //robot.motorLift.setPower(0);
         sleep(1000);
         robot.servoJewelArm.setPosition(.85);
         sleep(1000);

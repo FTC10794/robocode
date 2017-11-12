@@ -52,10 +52,10 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @TeleOp(name = "Sensor: MR Color", group = "Sensor")
-@Disabled
+//@Disabled
 public class SensorMRColor extends LinearOpMode {
 
-  ColorSensor colorSensor, colorSensor2;    // Hardware Device Object
+  ColorSensor colorSensor;//, colorSensor2;    // Hardware Device Object
 
 
   @Override
@@ -84,8 +84,8 @@ public class SensorMRColor extends LinearOpMode {
       boolean bLedOn2 = false;
 
     // get a reference to our ColorSensor object.
-      colorSensor = hardwareMap.colorSensor.get("color_beacon");
-      colorSensor2 = hardwareMap.colorSensor.get("color_beacon_left");
+      colorSensor = hardwareMap.colorSensor.get("color");
+      //colorSensor2 = hardwareMap.colorSensor.get("color_beacon_left");
 
     // Set the LED in the beginning
     colorSensor.enableLed(bLedOn);
@@ -121,31 +121,7 @@ public class SensorMRColor extends LinearOpMode {
       telemetry.addData("Green", colorSensor.green());
       telemetry.addData("Blue ", colorSensor.blue());
       telemetry.addData("Hue", hsvValues[0]);
-
-        bCurrState2 = gamepad1.y;
-
         // check for button state transitions.
-        if ((bCurrState2 == true) && (bCurrState2 != bPrevState2))  {
-
-            // button is transitioning to a pressed state. So Toggle LED
-            bLedOn2 = !bLedOn2;
-            colorSensor2.enableLed(bLedOn2);
-        }
-
-        // update previous state variable.
-        bPrevState2 = bCurrState2;
-
-        // convert the RGB values to HSV values.
-        Color.RGBToHSV(colorSensor2.red() * 8, colorSensor2.green() * 8, colorSensor2.blue() * 8,
-                hsvValues);
-
-        // send the info back to driver station using telemetry function.
-        telemetry.addData("2LED", bLedOn2 ? "On" : "Off");
-        telemetry.addData("2Clear", colorSensor2.alpha());
-        telemetry.addData("2Red  ", colorSensor2.red());
-        telemetry.addData("2Green", colorSensor2.green());
-        telemetry.addData("2Blue ", colorSensor2.blue());
-        telemetry.addData("2Hue", hsvValues[0]);
 
       // change the background color to match the color detected by the RGB sensor.
       // pass a reference to the hue, saturation, and value array as an argument
