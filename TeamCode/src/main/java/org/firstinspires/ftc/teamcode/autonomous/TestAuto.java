@@ -9,23 +9,20 @@ import org.firstinspires.ftc.teamcode.libs.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name="Full Red Autonomous", group="Red Autonomous")
+@Autonomous(name="Test Autonomous", group="Test Autonomous")
 //@Disabled
-public class FullRedAuto extends LinearOpMode {
-    boolean isActive;
+public class TestAuto extends LinearOpMode {
     private ElapsedTime     runtime                 = new ElapsedTime();
 
     private Robot           robot;
     private MotorFunctions  motorFunctions;
-
-    private double          posBlockSlide           = 0,
-            posRelicArm             = 0;
 
     static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
     static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
 
     @Override
     public void runOpMode() throws InterruptedException {
+        runtime.reset();
         telemetry.addData("Status", "Running Op Mode");
 
         /**
@@ -39,12 +36,23 @@ public class FullRedAuto extends LinearOpMode {
         waitForStart();
 
         initialize();
-        blockPickup();
-        jewelDetection();
-        drive(90, 2);
-        // turn 180 degrees
-        drive(180, .5);
+        turn(360);
+        sleep(2500);
+        turn(270);
+        sleep(2500);
+        turn(180);
+        sleep(2500);
+        turn(90);
+        sleep(2500);
 
+        turn(-360);
+        sleep(2500);
+        turn(-270);
+        sleep(2500);
+        turn(-180);
+        sleep(2500);
+        turn(-90);
+        sleep(2500);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +85,7 @@ public class FullRedAuto extends LinearOpMode {
      */
     public void blockPickup() {
         telemetry.addData(">", "Picking Up Block");
+
         //set paddles closed
         robot.servoLeftPaddle.setPosition(1);
         robot.servoRightPaddle.setPosition(0);
@@ -102,13 +111,13 @@ public class FullRedAuto extends LinearOpMode {
 
         // color sensor
         for (int i = 0; i < numTries; i++) {
-            if (robot.sensorColor.blue() < robot.sensorColor.red()) {
+            if (robot.sensorColor.blue() > robot.sensorColor.red()) {
                 telemetry.addData(">> Color: ", "Blue");
 
                 // drive forwards
                 drive(270, .35);
                 break;
-            } else if (robot.sensorColor.blue() > robot.sensorColor.red()) {
+            } else if (robot.sensorColor.blue() < robot.sensorColor.red()) {
                 telemetry.addData(">> Color:", "Red");
 
                 // drive backwards
@@ -120,6 +129,37 @@ public class FullRedAuto extends LinearOpMode {
         }
         sleep(500);
         robot.servoJewelArm.setPosition(0);
+        sleep(500);
+    }
+
+    public void driveToLocker() {
+        telemetry.addData(">", "Driving to Locker");
+
+        // drive to cryptolocker
+        telemetry.addData(">>", "Drive Left");
+        drive(90, 2);
+
+        // turn 180 degrees to face cryptolocker
+        telemetry.addData(">>", "Turn 180 deg");
+        turn(180);
+
+        // drive forward
+        telemetry.addData(">>", "Drive Forward");
+        drive(180, .5);
+        sleep(500);
+    }
+
+    public void blockDeposit() {
+        telemetry.addData(">", "Deposit Block");
+
+        //set motor lift down
+        robot.motorLift.setPower(-0.50);
+        sleep(1000);
+
+        //open paddles
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
+        sleep(500);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,6 +176,52 @@ public class FullRedAuto extends LinearOpMode {
     public void drive(double dir, double holdTime) {
         double[] motorSpeed = holonomicAuto(1, dir, 0);
         holonomicHold(motorSpeed, holdTime);
+    }
+
+    /**
+     *
+     * @param dir -1 or 1, direction of turn
+     */
+    public void pointTurn(int dir) {
+        dir = dir < 0 ? -1 : 1;
+        robot.motorFrontLeft.setPower(dir);
+        robot.motorBackLeft.setPower(dir);
+        robot.motorFrontRight.setPower(dir);
+        robot.motorBackRight.setPower(dir);
+    }
+
+    /**
+     * Turn the robot
+     * @param angle angle to turn at
+     */
+    public void turn(double angle) {
+        double desiredHeading = angle < 0 ? 360 - angle : angle;
+        double currentHeading;
+
+        // Calibrate the gyroscope
+        robot.sensorGyro.calibrate();
+        while(robot.sensorGyro.isCalibrating()) {
+            telemetry.addData("> Calibrating:", "Gyro");
+            telemetry.update();
+            sleep(50);
+        }
+
+        currentHeading = robot.sensorGyro.getHeading();
+        if (currentHeading > desiredHeading) {
+            while (robot.sensorGyro.getHeading() < desiredHeading) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(-1); // turn left
+            }
+            stopMotors();
+        } else {
+            while (robot.sensorGyro.getHeading() < desiredHeading) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(1);
+            }
+            stopMotors();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

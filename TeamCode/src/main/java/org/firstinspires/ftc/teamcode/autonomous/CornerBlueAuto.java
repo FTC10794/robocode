@@ -9,23 +9,20 @@ import org.firstinspires.ftc.teamcode.libs.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-@Autonomous(name="Full Blue Autonomous", group="Blue Autonomous")
+@Autonomous(name="Corner Blue Autonomous", group="Blue Autonomous")
 //@Disabled
-public class FullBlueAuto extends LinearOpMode {
-    boolean isActive;
+public class CornerBlueAuto extends LinearOpMode {
     private ElapsedTime     runtime                 = new ElapsedTime();
 
     private Robot           robot;
     private MotorFunctions  motorFunctions;
-
-    private double          posBlockSlide           = 0,
-                            posRelicArm             = 0;
 
     static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
     static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
 
     @Override
     public void runOpMode() throws InterruptedException {
+        runtime.reset();
         telemetry.addData("Status", "Running Op Mode");
 
         /**
@@ -43,8 +40,6 @@ public class FullBlueAuto extends LinearOpMode {
         jewelDetection();
         driveToLocker();
         blockDeposit();
-
-        sleep(5000);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +72,7 @@ public class FullBlueAuto extends LinearOpMode {
      */
     public void blockPickup() {
         telemetry.addData(">", "Picking Up Block");
+
         //set paddles closed
         robot.servoLeftPaddle.setPosition(1);
         robot.servoRightPaddle.setPosition(0);
@@ -119,21 +115,39 @@ public class FullBlueAuto extends LinearOpMode {
             }
         }
         sleep(500);
+        drive(180, .5);
         robot.servoJewelArm.setPosition(0);
+        sleep(1000);
     }
 
     public void driveToLocker() {
+        telemetry.addData(">", "Driving to Locker");
+
         // drive to cryptolocker
+        telemetry.addData(">>", "Drive Left");
         drive(90, 2);
 
         // turn 180 degrees to face cryptolocker
+        telemetry.addData(">>", "Turn 180 deg");
+        turn(180);
 
         // drive forward
+        telemetry.addData(">>", "Drive Forward");
         drive(180, .5);
+        sleep(500);
     }
 
     public void blockDeposit() {
+        telemetry.addData(">", "Deposit Block");
 
+        //set motor lift down
+        robot.motorLift.setPower(-0.50);
+        sleep(1000);
+
+        //open paddles
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
+        sleep(500);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,11 +167,49 @@ public class FullBlueAuto extends LinearOpMode {
     }
 
     /**
+     *
+     * @param dir -1 or 1, direction of turn
+     */
+    public void pointTurn(int dir) {
+        dir = dir < 0 ? -1 : 1;
+        robot.motorFrontLeft.setPower(dir);
+        robot.motorBackLeft.setPower(dir);
+        robot.motorFrontRight.setPower(dir);
+        robot.motorBackRight.setPower(dir);
+    }
+
+    /**
      * Turn the robot
      * @param angle angle to turn at
      */
     public void turn(double angle) {
+        double desiredHeading = angle < 0 ? 360 - angle : angle;
+        double currentHeading;
 
+        // Calibrate the gyroscope
+        robot.sensorGyro.calibrate();
+        while(robot.sensorGyro.isCalibrating()) {
+            telemetry.addData("> Calibrating:", "Gyro");
+            telemetry.update();
+            sleep(50);
+        }
+
+        currentHeading = robot.sensorGyro.getHeading();
+        if (currentHeading > desiredHeading) {
+            while (robot.sensorGyro.getHeading() < desiredHeading) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(-1); // turn left
+            }
+            stopMotors();
+        } else {
+            while (robot.sensorGyro.getHeading() < desiredHeading) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(1);
+            }
+            stopMotors();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
