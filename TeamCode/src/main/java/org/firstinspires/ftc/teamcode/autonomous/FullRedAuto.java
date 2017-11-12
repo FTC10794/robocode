@@ -1,0 +1,307 @@
+package org.firstinspires.ftc.teamcode.autonomous;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
+import org.firstinspires.ftc.teamcode.libs.Robot;
+
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+@Autonomous(name="Full Red Autonomous", group="Red Autonomous")
+//@Disabled
+public class FullRedAuto extends LinearOpMode {
+    boolean isActive;
+    private ElapsedTime     runtime                 = new ElapsedTime();
+
+    private Robot           robot;
+    private MotorFunctions  motorFunctions;
+
+    private double          posBlockSlide           = 0,
+            posRelicArm             = 0;
+
+    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
+    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        telemetry.addData("Status", "Running Op Mode");
+
+        /**
+         * Initializes the library functions
+         * Robot hardware and motor functions
+         */
+        robot = new Robot(hardwareMap);
+        motorFunctions = new MotorFunctions(-1, 1, 0, 1, .01);
+
+        //Wait For Autonomous to Start
+        waitForStart();
+
+        initialize();
+        blockPickup();
+        jewelDetection();
+        drive(90, 2);
+        // turn 180 degrees
+        drive(180, .5);
+
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Modular Functions
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Initialize Motor and Servo Positions
+     */
+    public void initialize() {
+        telemetry.addData(">", "Initialized");
+
+        //servo motors initial positions
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
+        robot.servoRotator.setPosition(0.0833);
+        robot.servoSlide.setPosition(0);
+
+        robot.servoRelicArm.setPosition(1);
+        robot.servoRelicClaw.setPosition(0);
+
+        robot.servoJewelArm.setPosition(0);
+        sleep(1000);
+    }
+
+    /**
+     * Pick up the block (pre-loaded)
+     */
+    public void blockPickup() {
+        telemetry.addData(">", "Picking Up Block");
+        //set paddles closed
+        robot.servoLeftPaddle.setPosition(1);
+        robot.servoRightPaddle.setPosition(0);
+
+        //pause
+        sleep(1000);
+
+        //set motor lift up
+        robot.motorLift.setPower(-0.50);
+        sleep(1000);
+    }
+
+    /**
+     * Detect Jewel and remove from platform
+     */
+    public void jewelDetection() {
+        telemetry.addData(">", "Jewel Detection");
+        //bring down the arm
+        robot.servoJewelArm.setPosition(.85);
+
+        // color sensor
+        if (robot.sensorColor.blue() > robot.sensorColor.red()) {
+            telemetry.addData(">> Color: ", "Blue");
+
+            // drive forwards
+            double[] motorSpeed = holonomicAuto(.25, 270, 0);
+            holonomicHold(motorSpeed, .25);
+        } else {
+            telemetry.addData(">> Color:", "Red");
+
+            // drive backwards
+            double[] motorSpeed = holonomicAuto(.25, 90, 0);
+            holonomicHold(motorSpeed, .25);
+        }
+        robot.servoJewelArm.setPosition(0);
+    }
+
+    /**
+     * Drive Straight
+     * @param dir direction of travel
+     * @param holdTime time to hold
+     */
+    public void drive(double dir, double holdTime) {
+        double[] motorSpeed = holonomicAuto(1, dir, 0);
+        holonomicHold(motorSpeed, holdTime);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Helper Functions
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Method to drive the robot using the holonomic drive
+     * @param speed Speed of the robot drive train motors
+     * @param angle Angle of travel
+     * @param dirSpeed Speed of directional change
+     * @return double[] motor powers to assign
+     */
+    public double[] holonomicAuto(double speed, double angle, double dirSpeed) {
+        double[] motorSpeeds = {0, 0, 0, 0};
+
+        double heading = Math.toRadians(angle) + ((Math.PI)/4);
+        motorSpeeds[0] = Range.clip(speed * Math.sin(heading) + dirSpeed, -1, 1);
+        motorSpeeds[1] = Range.clip(speed * Math.cos(heading) - dirSpeed, -1, 1);
+        motorSpeeds[2] = Range.clip(speed * Math.cos(heading) + dirSpeed, -1, 1);
+        motorSpeeds[3] = Range.clip(speed * Math.sin(heading) - dirSpeed, -1, 1);
+
+        return motorSpeeds;
+    }
+
+    /**
+     * Hold speed
+     * @param speed motor speeds
+     * @param holdTime time to hold
+     */
+    public void holonomicHold(double[] speed, double holdTime) {
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            // Update telemetry & Allow time for other processes to run.
+            robot.motorFrontLeft.setPower(speed[0]);
+            robot.motorFrontRight.setPower(speed[1]);
+            robot.motorBackLeft.setPower(speed[2]);
+            robot.motorBackRight.setPower(speed[3]);
+            telemetry.update();
+        }
+
+        stopMotors();
+    }
+
+    /**
+     * Stop all motion
+     */
+    public void stopMotors() {
+        // Stop all motion;
+        robot.motorFrontLeft.setPower(0);
+        robot.motorFrontRight.setPower(0);
+        robot.motorBackLeft.setPower(0);
+        robot.motorBackRight.setPower(0);
+    }
+
+    /**
+     *  Method to spin on central axis to point in a new direction.
+     *  Move will stop if either of these conditions occur:
+     *  1) Move gets to the heading (angle)
+     *  2) Driver stops the opmode running.
+     *
+     * @param speed Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     */
+    public void gyroTurn (double speed, double angle) {
+
+        // keep looping while we are still active, and not on heading.
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+        }
+    }
+
+    /**
+     *  Method to obtain & hold a heading for a finite amount of time
+     *  Move will stop once the requested time has elapsed
+     *
+     * @param speed      Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     * @param holdTime   Length of time (in seconds) to hold the specified heading.
+     */
+    public void gyroHold( double speed, double angle, double holdTime) {
+
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            // Update telemetry & Allow time for other processes to run.
+            onHeading(speed, angle, P_TURN_COEFF);
+            telemetry.update();
+        }
+
+        // Stop all motion;
+        robot.motorFrontLeft.setPower(0);
+        robot.motorFrontRight.setPower(0);
+        robot.motorBackLeft.setPower(0);
+        robot.motorBackRight.setPower(0);
+    }
+
+    /**
+     * Perform one cycle of closed loop heading control.
+     *
+     * @param speed     Desired speed of turn.
+     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
+     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                  If a relative angle is required, add/subtract from current heading.
+     * @param PCoeff    Proportional Gain coefficient
+     * @return
+     */
+    boolean onHeading(double speed, double angle, double PCoeff) {
+        double   error ;
+        double   steer ;
+        boolean  onTarget = false ;
+        double leftSpeed;
+        double rightSpeed;
+
+        // determine turn power based on +/- error
+        error = getError(angle);
+
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed  = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        }
+        else {
+            steer = getSteer(error, PCoeff);
+            rightSpeed  = speed * steer;
+            leftSpeed   = -rightSpeed;
+        }
+
+        // Send desired speeds to motors.
+        robot.motorFrontLeft.setPower(leftSpeed);
+        robot.motorFrontRight.setPower(rightSpeed);
+        robot.motorBackLeft.setPower(leftSpeed);
+        robot.motorBackRight.setPower(rightSpeed);
+
+        // Display it for the driver.
+        telemetry.addData("Target", "%5.2f", angle);
+        telemetry.addData("Err/St", "%5.2f/%5.2f", error, steer);
+        telemetry.addData("Speed.", "%5.2f:%5.2f", leftSpeed, rightSpeed);
+
+        return onTarget;
+    }
+
+    /**
+     * getError determines the error between the target angle and the robot's current heading
+     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
+     * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     */
+    public double getError(double targetAngle) {
+
+        double robotError;
+
+        // calculate error in -179 to +180 range  (
+        robotError = targetAngle - robot.sensorGyro.getIntegratedZValue();
+        while (robotError > 180)  robotError -= 360;
+        while (robotError <= -180) robotError += 360;
+        return robotError;
+    }
+
+    /**
+     * returns desired steering force.  +/- 1 range.  +ve = steer left
+     * @param error   Error angle in robot relative degrees
+     * @param PCoeff  Proportional Gain Coefficient
+     * @return
+     */
+    public double getSteer(double error, double PCoeff) {
+        return Range.clip(error * PCoeff, -1, 1);
+    }
+
+}
