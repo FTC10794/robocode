@@ -1,15 +1,14 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.teamcode.libs.Robot;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-
-@Autonomous(name="Test Autonomous", group="Test Autonomous")
+@TeleOp(name="Test Autonomous", group="Test Autonomous")
 //@Disabled
 public class TestAuto extends LinearOpMode {
     private ElapsedTime     runtime                 = new ElapsedTime();
@@ -36,23 +35,53 @@ public class TestAuto extends LinearOpMode {
         waitForStart();
 
         initialize();
-        turn(360);
-        sleep(2500);
-        turn(270);
-        sleep(2500);
-        turn(180);
-        sleep(2500);
-        turn(90);
-        sleep(2500);
 
-        turn(-360);
-        sleep(2500);
+        telemetry.addData("Current Heading:", "%3d deg", robot.sensorGyro.getHeading());
+        telemetry.update();
+        sleep(1000);
+
+        telemetry.addData("Turning Right: ", "270");
+        telemetry.update();
+        turn(270);
+        sleep(5000);
+
+        telemetry.addData("Turning Right: ", "180");
+        telemetry.update();
+        turn(180);
+        sleep(5000);
+
+        telemetry.addData("Turning Right: ", "90");
+        telemetry.update();
+        turn(90);
+        sleep(5000);
+
+
+        telemetry.addData("Turning Left: ", "-270");
+        telemetry.update();
         turn(-270);
-        sleep(2500);
+        sleep(5000);
+
+        telemetry.addData("Turning Left: ", "-180");
+        telemetry.update();
         turn(-180);
-        sleep(2500);
+        sleep(5000);
+
+        telemetry.addData("Turning Left: ", "-90");
+        telemetry.update();
         turn(-90);
-        sleep(2500);
+        sleep(5000);
+
+
+        telemetry.addData("Turning: ", "360");
+        telemetry.addData("Turning Right: ", "360");
+        telemetry.update();
+        turn(360);
+        sleep(5000);
+
+        telemetry.addData("Turning Left: ", "-360");
+        telemetry.update();
+        turn(-360);
+        sleep(5000);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,11 +212,10 @@ public class TestAuto extends LinearOpMode {
      * @param dir -1 or 1, direction of turn
      */
     public void pointTurn(int dir) {
-        dir = dir < 0 ? -1 : 1;
         robot.motorFrontLeft.setPower(dir);
         robot.motorBackLeft.setPower(dir);
-        robot.motorFrontRight.setPower(dir);
-        robot.motorBackRight.setPower(dir);
+        robot.motorFrontRight.setPower(-dir);
+        robot.motorBackRight.setPower(-dir);
     }
 
     /**
@@ -195,7 +223,8 @@ public class TestAuto extends LinearOpMode {
      * @param angle angle to turn at
      */
     public void turn(double angle) {
-        double desiredHeading = angle < 0 ? 360 - angle : angle;
+        angle = (angle > 360) ? (angle/360) : angle;
+        double desiredHeading = angle < 0 ? 360 + angle : angle;
         double currentHeading;
 
         // Calibrate the gyroscope
@@ -207,18 +236,22 @@ public class TestAuto extends LinearOpMode {
         }
 
         currentHeading = robot.sensorGyro.getHeading();
-        if (currentHeading > desiredHeading) {
-            while (robot.sensorGyro.getHeading() < desiredHeading) {
+        if (desiredHeading == Math.abs(360)) {
+            telemetry.addData(">> Current Heading!!", "%3d deg", robot.sensorGyro.getHeading());
+            telemetry.update();
+            stopMotors();
+        } else if (angle < 0 && currentHeading > desiredHeading) {
+            while (robot.sensorGyro.getHeading() >= desiredHeading) {
                 telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
                 telemetry.update();
-                pointTurn(-1); // turn left
+                pointTurn(-1); // turn right
             }
             stopMotors();
         } else {
-            while (robot.sensorGyro.getHeading() < desiredHeading) {
+            while (robot.sensorGyro.getHeading() <= desiredHeading) {
                 telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
                 telemetry.update();
-                pointTurn(1);
+                pointTurn(1); // turn left
             }
             stopMotors();
         }
