@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -9,7 +10,7 @@ import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.teamcode.libs.Robot;
 
 @Autonomous(name="Corner Blue Autonomous", group="Blue Autonomous")
-//@Disabled
+@Disabled
 public class CornerBlueAuto extends LinearOpMode {
     private ElapsedTime     runtime                 = new ElapsedTime();
 
@@ -170,7 +171,6 @@ public class CornerBlueAuto extends LinearOpMode {
      * @param dir -1 or 1, direction of turn
      */
     public void pointTurn(int dir) {
-        dir = dir < 0 ? -1 : 1;
         robot.motorFrontLeft.setPower(dir);
         robot.motorBackLeft.setPower(dir);
         robot.motorFrontRight.setPower(dir);
@@ -181,10 +181,37 @@ public class CornerBlueAuto extends LinearOpMode {
      * Turn the robot
      * @param angle angle to turn at
      */
-    public void turn(double angle) {
-        double desiredHeading = angle < 0 ? 360 - angle : angle;
-        double currentHeading;
+//    public void turn(double angle) {
+//        double desiredHeading = angle < 0 ? 360 - angle : angle;
+//        double currentHeading;
+//
+//        // Calibrate the gyroscope
+//        robot.sensorGyro.calibrate();
+//        while(robot.sensorGyro.isCalibrating()) {
+//            telemetry.addData("> Calibrating:", "Gyro");
+//            telemetry.update();
+//            sleep(50);
+//        }
+//
+//        currentHeading = robot.sensorGyro.getHeading();
+//        if (currentHeading > desiredHeading) {
+//            while (robot.sensorGyro.getHeading() < desiredHeading) {
+//                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+//                telemetry.update();
+//                pointTurn(-1); // turn left
+//            }
+//            stopMotors();
+//        } else {
+//            while (robot.sensorGyro.getHeading() < desiredHeading) {
+//                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+//                telemetry.update();
+//                pointTurn(1);
+//            }
+//            stopMotors();
+//        }
+//    }
 
+    public void turn(double angle) {
         // Calibrate the gyroscope
         robot.sensorGyro.calibrate();
         while(robot.sensorGyro.isCalibrating()) {
@@ -193,20 +220,38 @@ public class CornerBlueAuto extends LinearOpMode {
             sleep(50);
         }
 
-        currentHeading = robot.sensorGyro.getHeading();
-        if (currentHeading > desiredHeading) {
-            while (robot.sensorGyro.getHeading() < desiredHeading) {
+        double heading = robot.sensorGyro.getHeading();
+        if (angle == heading || angle == 360) {
+            stopMotors();
+            return;
+        }
+
+        if (heading > angle && angle < 0) {
+            while (robot.sensorGyro.getHeading() > Math.abs(angle)) {
                 telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
                 telemetry.update();
-                pointTurn(-1); // turn left
+                pointTurn(-1);
             }
-            stopMotors();
-        } else {
-            while (robot.sensorGyro.getHeading() < desiredHeading) {
+        } else  if (heading > angle && angle > 0) {
+            while (robot.sensorGyro.getHeading() > angle) {
                 telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
                 telemetry.update();
                 pointTurn(1);
             }
+        } else if (heading < angle && angle < 0) {
+            while (robot.sensorGyro.getHeading() < Math.abs(angle)) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(-1);
+            }
+        } else if (heading < angle && angle > 0) {
+            while (robot.sensorGyro.getHeading() < angle) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(1);
+            }
+        } else {
+            // current angle or heading is 360
             stopMotors();
         }
     }

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -9,7 +10,7 @@ import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.teamcode.libs.Robot;
 
 @Autonomous(name="Corner Red Autonomous", group="Red Autonomous")
-//@Disabled
+@Disabled
 public class CornerRedAuto extends LinearOpMode {
     boolean isActive;
     private ElapsedTime     runtime                 = new ElapsedTime();
