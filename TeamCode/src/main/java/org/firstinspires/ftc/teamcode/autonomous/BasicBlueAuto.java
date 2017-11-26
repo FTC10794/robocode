@@ -59,8 +59,8 @@ public class BasicBlueAuto extends LinearOpMode {
         telemetry.update();
 
         //servo motors initial positions
-        robot.servoLeftPaddle.setPosition(0);
-        robot.servoRightPaddle.setPosition(1);
+        robot.servoLeftPaddle.setPosition(.5);
+        robot.servoRightPaddle.setPosition(.5);
         robot.servoRotator.setPosition(0.0833);
         robot.servoSlide.setPosition(0);
 
@@ -79,8 +79,8 @@ public class BasicBlueAuto extends LinearOpMode {
         telemetry.update();
 
         //set paddles closed
-        robot.servoLeftPaddle.setPosition(1);
-        robot.servoRightPaddle.setPosition(0);
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
 
         //pause
         sleep(1000);
@@ -124,7 +124,7 @@ public class BasicBlueAuto extends LinearOpMode {
             }
         }
         sleep(500);
-        drive(180, .5);
+        drive(180, .2);
         robot.servoJewelArm.setPosition(0);
         sleep(500);
     }

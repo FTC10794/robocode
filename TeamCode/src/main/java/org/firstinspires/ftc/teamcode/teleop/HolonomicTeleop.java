@@ -1,20 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.robotcore.hardware.*;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
-
 import org.firstinspires.ftc.teamcode.libs.Robot;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 
 @TeleOp(name="HoloDrive", group="Teleop")  // @Autonomous(...) is the other common choice
@@ -155,9 +147,9 @@ public class HolonomicTeleop extends OpMode {
          */
 
         if (gamepad2.a) {
-            // flapper in
-            robot.servoLeftPaddle.setPosition(.5);
-            robot.servoRightPaddle.setPosition(.5);
+            // flappers out
+            robot.servoLeftPaddle.setPosition(0);
+            robot.servoRightPaddle.setPosition(1);
         }
         if (gamepad2.y) {
             //center rotator
@@ -167,9 +159,9 @@ public class HolonomicTeleop extends OpMode {
             // flapper out
         }
         if (gamepad2.b) {
-            // not in use
-            robot.servoLeftPaddle.setPosition(0);
-            robot.servoRightPaddle.setPosition(1);
+            // flapper in
+            robot.servoLeftPaddle.setPosition(.5);
+            robot.servoRightPaddle.setPosition(.5);
         }
         if (gamepad2.left_bumper) {
             // turn left
@@ -178,7 +170,7 @@ public class HolonomicTeleop extends OpMode {
         if (gamepad2.right_bumper) {
             // turn right
             // was last at .005 but it turned to much so I changed it to slightly higher
-            robot.servoRotator.setPosition(.010);
+            robot.servoRotator.setPosition(.0035);
         }
         if (gamepad2.left_trigger > 0.1) {
             // not in use
