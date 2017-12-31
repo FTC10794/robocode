@@ -1,6 +1,6 @@
 //package org.firstinspires.ftc.teamcode.autonomous;
 //
-//import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+//import com.qualcomm.robotcore.eventloop.opmode.Auto;
 //import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.hardware.DcMotor;
 //import com.qualcomm.robotcore.util.ElapsedTime;
@@ -8,7 +8,7 @@
 //import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 //import org.firstinspires.ftc.teamcode.libs.Robot;
 //
-//@Autonomous(name="Red Beacon Shoot ", group="Autonmous: Red")
+//@Auto(name="Red Beacon Shoot ", group="Autonmous: Red")
 //public class RedBeaconShoot extends LinearOpMode {
 //
 //    private Robot robot;

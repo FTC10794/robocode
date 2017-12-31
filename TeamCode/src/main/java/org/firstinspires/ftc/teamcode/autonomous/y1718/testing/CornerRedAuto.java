@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.autonomous.y1718.testing;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -8,9 +9,9 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.teamcode.libs.Robot;
 
-@Autonomous(name="Basic Red Autonomous", group="Red Autonomous")
-//@Disabled
-public class BasicRedAuto extends LinearOpMode {
+@Autonomous(name="Corner Red Auto", group="Red Auto")
+@Disabled
+public class CornerRedAuto extends LinearOpMode {
     boolean isActive;
     private ElapsedTime     runtime                 = new ElapsedTime();
 
@@ -34,14 +35,15 @@ public class BasicRedAuto extends LinearOpMode {
         robot = new Robot(hardwareMap);
         motorFunctions = new MotorFunctions(-1, 1, 0, 1, .01);
 
-        //Wait For Autonomous to Start
+        //Wait For Auto to Start
         waitForStart();
 
         initialize();
         blockPickup();
         jewelDetection();
-
-        sleep(2500);
+        drive(90, 2);
+        // turn 180 degrees
+        drive(180, .5);
 
     }
 
@@ -56,11 +58,10 @@ public class BasicRedAuto extends LinearOpMode {
      */
     public void initialize() {
         telemetry.addData(">", "Initialized");
-        telemetry.update();
 
         //servo motors initial positions
-        robot.servoLeftPaddle.setPosition(.5);
-        robot.servoRightPaddle.setPosition(.5);
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
         robot.servoRotator.setPosition(0.0833);
         robot.servoSlide.setPosition(0);
 
@@ -76,11 +77,9 @@ public class BasicRedAuto extends LinearOpMode {
      */
     public void blockPickup() {
         telemetry.addData(">", "Picking Up Block");
-        telemetry.update();
-
         //set paddles closed
-        robot.servoLeftPaddle.setPosition(0);
-        robot.servoRightPaddle.setPosition(1);
+        robot.servoLeftPaddle.setPosition(1);
+        robot.servoRightPaddle.setPosition(0);
 
         //pause
         sleep(1000);
@@ -95,8 +94,6 @@ public class BasicRedAuto extends LinearOpMode {
      */
     public void jewelDetection() {
         telemetry.addData(">", "Jewel Detection");
-        telemetry.update();
-
         final int numTries = 3;
 
         //bring down the arm
@@ -107,16 +104,14 @@ public class BasicRedAuto extends LinearOpMode {
         for (int i = 0; i < numTries; i++) {
             if (robot.sensorColor.blue() < robot.sensorColor.red()) {
                 telemetry.addData(">> Color: ", "Blue");
-                telemetry.update();
 
-                // drive right
+                // drive forwards
                 drive(270, .35);
                 break;
             } else if (robot.sensorColor.blue() > robot.sensorColor.red()) {
                 telemetry.addData(">> Color:", "Red");
-                telemetry.update();
 
-                // drive left
+                // drive backwards
                 drive(90, .35);
                 break;
             } else {
@@ -124,9 +119,7 @@ public class BasicRedAuto extends LinearOpMode {
             }
         }
         sleep(500);
-        drive(180, .2);
         robot.servoJewelArm.setPosition(0);
-        sleep(500);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,10 +130,6 @@ public class BasicRedAuto extends LinearOpMode {
 
     /**
      * Drive "Straight"
-     * 180 deg: Front
-     * 0 deg: Back
-     * 90 deg: Left
-     * 270 deg: Right
      * @param dir direction of travel
      * @param holdTime time to hold
      */

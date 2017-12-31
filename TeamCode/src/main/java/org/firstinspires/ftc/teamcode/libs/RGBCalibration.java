@@ -24,7 +24,7 @@
 // * on and off, respectively.
 // */
 //
-//@TeleOp(name="RGB Calibration", group="Iterative Opmode")  // @Autonomous(...) is the other common
+//@TeleOp(name="RGB Calibration", group="Iterative Opmode")  // @Auto(...) is the other common
 //// choice
 //@Disabled
 //public class RGBCalibration extends OpMode implements I2cPortReadyCallback {

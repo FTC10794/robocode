@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.autonomous.y1718.testing;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -9,11 +9,10 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.teamcode.libs.Robot;
 
-@Autonomous(name="Basic Autonomous", group="Autonomous")
+@Autonomous(name="Basic Red Auto", group="Red Auto")
 @Disabled
-public class BasicAuto extends LinearOpMode {
+public class BasicRedAuto extends LinearOpMode {
     boolean isActive;
-    boolean isBlue = false;
     private ElapsedTime     runtime                 = new ElapsedTime();
 
     private Robot           robot;
@@ -36,14 +35,14 @@ public class BasicAuto extends LinearOpMode {
         robot = new Robot(hardwareMap);
         motorFunctions = new MotorFunctions(-1, 1, 0, 1, .01);
 
-        //Wait For Autonomous to Start
+        //Wait For Auto to Start
         waitForStart();
 
         initialize();
         blockPickup();
         jewelDetection();
 
-        sleep(10000);
+        sleep(2500);
 
     }
 
@@ -58,10 +57,11 @@ public class BasicAuto extends LinearOpMode {
      */
     public void initialize() {
         telemetry.addData(">", "Initialized");
+        telemetry.update();
 
         //servo motors initial positions
-        robot.servoLeftPaddle.setPosition(0);
-        robot.servoRightPaddle.setPosition(1);
+        robot.servoLeftPaddle.setPosition(.5);
+        robot.servoRightPaddle.setPosition(.5);
         robot.servoRotator.setPosition(0.0833);
         robot.servoSlide.setPosition(0);
 
@@ -72,27 +72,16 @@ public class BasicAuto extends LinearOpMode {
         sleep(1000);
     }
 
-    public void colorDetection() {
-        final int numTries = 3;
-        for (int i = 0; i < numTries; i++) {
-            if (robot.sensorColor.blue() > robot.sensorColor.red()) {
-                isBlue = true;
-            } else if (robot.sensorColor.red() > robot.sensorColor.blue()) {
-                isBlue = false;
-            } else {
-                sleep(1000);
-            }
-        }
-    }
-
     /**
      * Pick up the block (pre-loaded)
      */
     public void blockPickup() {
         telemetry.addData(">", "Picking Up Block");
+        telemetry.update();
+
         //set paddles closed
-        robot.servoLeftPaddle.setPosition(1);
-        robot.servoRightPaddle.setPosition(0);
+        robot.servoLeftPaddle.setPosition(0);
+        robot.servoRightPaddle.setPosition(1);
 
         //pause
         sleep(1000);
@@ -107,6 +96,8 @@ public class BasicAuto extends LinearOpMode {
      */
     public void jewelDetection() {
         telemetry.addData(">", "Jewel Detection");
+        telemetry.update();
+
         final int numTries = 3;
 
         //bring down the arm
@@ -115,16 +106,18 @@ public class BasicAuto extends LinearOpMode {
 
         // color sensor
         for (int i = 0; i < numTries; i++) {
-            if (robot.sensorColor.blue() > robot.sensorColor.red()) {
+            if (robot.sensorColor.blue() < robot.sensorColor.red()) {
                 telemetry.addData(">> Color: ", "Blue");
+                telemetry.update();
 
-                // drive forwards
+                // drive right
                 drive(270, .35);
                 break;
-            } else if (robot.sensorColor.blue() < robot.sensorColor.red()) {
+            } else if (robot.sensorColor.blue() > robot.sensorColor.red()) {
                 telemetry.addData(">> Color:", "Red");
+                telemetry.update();
 
-                // drive backwards
+                // drive left
                 drive(90, .35);
                 break;
             } else {
@@ -132,7 +125,9 @@ public class BasicAuto extends LinearOpMode {
             }
         }
         sleep(500);
+        drive(180, .2);
         robot.servoJewelArm.setPosition(0);
+        sleep(500);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +138,10 @@ public class BasicAuto extends LinearOpMode {
 
     /**
      * Drive "Straight"
+     * 180 deg: Front
+     * 0 deg: Back
+     * 90 deg: Left
+     * 270 deg: Right
      * @param dir direction of travel
      * @param holdTime time to hold
      */

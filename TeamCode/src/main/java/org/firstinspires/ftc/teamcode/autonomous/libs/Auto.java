@@ -1,94 +1,60 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.autonomous.libs;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.teamcode.libs.Robot;
+import org.firstinspires.ftc.teamcode.libs.RobotHardwareValues;
 
-@TeleOp(name="Test Autonomous", group="Test Autonomous")
-@Disabled
-public class TestAuto extends LinearOpMode {
+public abstract class Auto extends LinearOpMode {
+    // Class Variables
+    public Robot robot;
+    public Telemetry telemetry;
+
+    private MotorFunctions motorFunctions;
+    private RobotHardwareValues hardwareValues;
+    private AllianceColor allianceColor = AllianceColor.UNKNOWN;
+
+    // Function Variables
+    boolean isActive;
     private ElapsedTime     runtime                 = new ElapsedTime();
 
-    private Robot           robot;
-    private MotorFunctions  motorFunctions;
+    private double          posBlockSlide           = 0,
+            posRelicArm             = 0;
 
     static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
     static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
 
-    @Override
-    public void runOpMode() throws InterruptedException {
-        runtime.reset();
-        telemetry.addData("Status", "Running Op Mode");
+    // Vuforia Variables
+    /**
+     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
+     * localization engine.
+     */
+    private VuforiaLocalizer vuforia;
+    private RelicRecoveryVuMark vuMark;
 
-        /**
-         * Initializes the library functions
-         * Robot hardware and motor functions
-         */
+    /**
+     * Constructor
+     */
+    public Auto() {
         robot = new Robot(hardwareMap);
-        motorFunctions = new MotorFunctions(-1, 1, 0, 1, .01);
-
-        //Wait For Autonomous to Start
-        waitForStart();
-
-        initialize();
-
-        telemetry.addData("Current Heading:", "%3d deg", robot.sensorGyro.getHeading());
-        telemetry.update();
-        sleep(1000);
-
-        telemetry.addData("Turning Right: ", "270");
-        telemetry.update();
-        turn(270);
-        sleep(5000);
-
-        telemetry.addData("Turning Right: ", "180");
-        telemetry.update();
-        turn(180);
-        sleep(5000);
-
-        telemetry.addData("Turning Right: ", "90");
-        telemetry.update();
-        turn(90);
-        sleep(5000);
-
-        telemetry.addData("Centering: ", "0");
-        telemetry.update();
-        turn(0);
-        sleep(5000);
-
-
-        telemetry.addData("Turning Left: ", "-270");
-        telemetry.update();
-        turn(-270);
-        sleep(5000);
-
-        telemetry.addData("Turning Left: ", "-180");
-        telemetry.update();
-        turn(-180);
-        sleep(5000);
-
-        telemetry.addData("Turning Left: ", "-90");
-        telemetry.update();
-        turn(-90);
-        sleep(5000);
-
-
-        telemetry.addData("Turning: ", "360");
-        telemetry.addData("Turning Right: ", "360");
-        telemetry.update();
-        turn(360);
-        sleep(5000);
-
-        telemetry.addData("Turning Left: ", "-360");
-        telemetry.update();
-        turn(-360);
-        sleep(5000);
+        telemetry.addData("Status", "Intializing Auto");
     }
+
+    /**
+     * This function should be overwritten in all subclasses.
+     * @throws InterruptedException
+     */
+    @Override
+    public abstract void runOpMode() throws InterruptedException;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -101,29 +67,54 @@ public class TestAuto extends LinearOpMode {
      */
     public void initialize() {
         telemetry.addData(">", "Initialized");
+        telemetry.update();
 
         //servo motors initial positions
-        robot.servoLeftPaddle.setPosition(0);
-        robot.servoRightPaddle.setPosition(1);
-        robot.servoRotator.setPosition(0.0833);
-        robot.servoSlide.setPosition(0);
+        robot.servoLeftPaddle.setPosition(hardwareValues.servoLeftPaddleIn);
+        robot.servoRightPaddle.setPosition(hardwareValues.servoRightPaddleIn);
+        robot.servoRotator.setPosition(hardwareValues.servoRotatorCenter);
+        robot.servoSlide.setPosition(hardwareValues.servoSlideOneBlock);
 
-        robot.servoRelicArm.setPosition(1);
-        robot.servoRelicClaw.setPosition(0);
+        robot.servoRelicArm.setPosition(hardwareValues.servoRelicArmInit);
+        robot.servoRelicClaw.setPosition(hardwareValues.servoRelicClawClosed);
 
-        robot.servoJewelArm.setPosition(0);
+        robot.servoJewelArm.setPosition(hardwareValues.servoJewelArmUp);
+        robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterCenter);
         sleep(1000);
     }
 
     /**
+     * Detect Alliance Color based off of platform color
+     * @param numTries number of retries to use
+     */
+    public void detectAlliance(int numTries) {
+        if (robot.sensorLine.blue() > robot.sensorLine.red()) {
+            allianceColor = AllianceColor.BLUE;
+        } else if (robot.sensorLine.red() > robot.sensorLine.blue()) {
+            allianceColor = AllianceColor.RED;
+        } else {
+            if (numTries < 3) {
+                detectAlliance(numTries++);
+            }
+        }
+        sleep(150);
+    }
+
+    /**
      * Pick up the block (pre-loaded)
+     * FIXME for new paddles
      */
     public void blockPickup() {
         telemetry.addData(">", "Picking Up Block");
+        telemetry.update();
+
+        // set wheels to pull in
+        robot.servoLeftWheel.setPower(hardwareValues.servoLeftWheelIn);
+        robot.servoRightWheel.setPower(hardwareValues.servoRightWheelIn);
 
         //set paddles closed
-        robot.servoLeftPaddle.setPosition(1);
-        robot.servoRightPaddle.setPosition(0);
+        robot.servoLeftPaddle.setPosition(hardwareValues.servoLeftPaddleIn);
+        robot.servoRightPaddle.setPosition(hardwareValues.servoRightPaddleIn);
 
         //pause
         sleep(1000);
@@ -138,63 +129,96 @@ public class TestAuto extends LinearOpMode {
      */
     public void jewelDetection() {
         telemetry.addData(">", "Jewel Detection");
+        telemetry.update();
+
         final int numTries = 3;
 
         //bring down the arm
-        robot.servoJewelArm.setPosition(.85);
+        robot.servoJewelArm.setPosition(hardwareValues.servoJewelArmDown);
         sleep(1000);
 
         // color sensor
         for (int i = 0; i < numTries; i++) {
             if (robot.sensorColor.blue() > robot.sensorColor.red()) {
                 telemetry.addData(">> Color: ", "Blue");
+                telemetry.update();
 
-                // drive forwards
-                drive(270, .35);
+                if (allianceColor == AllianceColor.BLUE) {
+                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickBackward);
+                }
+                if (allianceColor == AllianceColor.RED) {
+                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickForward);
+                }
                 break;
-            } else if (robot.sensorColor.blue() < robot.sensorColor.red()) {
+            } else if (robot.sensorColor.red() > robot.sensorColor.blue()) {
                 telemetry.addData(">> Color:", "Red");
+                telemetry.update();
 
-                // drive backwards
-                drive(90, .35);
+                if (allianceColor == AllianceColor.BLUE) {
+                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickForward);
+                }
+                if (allianceColor == AllianceColor.RED) {
+                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickBackward);
+                }
                 break;
             } else {
                 sleep(500);
             }
         }
         sleep(500);
-        robot.servoJewelArm.setPosition(0);
+        // Restore position
+        robot.servoJewelArm.setPosition(hardwareValues.servoJewelArmUp);
+        robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterCenter);
+        sleep(500);
+    }
+
+    public void detectPictograph() {
+        telemetry.addData(">", "Initializing Vuforia");
+        telemetry.update();
+
+        // Set up camera
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+
+        // Set parameters
+        parameters.vuforiaLicenseKey = "AXh5WtX/////AAAAmSIZEeuzqUEUv7PT36AAH2VEOgEe3MPEoQzgGVFPetvXT/1xZSd7D0UTfabEvWunLFqDqZUA10XsGkpUisGD4SQoAU1Z0ccpr5zTyEoTkU0kRTVJfTZn73UTpqwrCmkfN+O0/8fPZxaz540oZw1ACSeBgJ6pOrC71tOGelpYLZ4th81YOde7hzk/TvLXqVSfXyRqtWcGyOMKMWBf4/HCepiD5Bix1GEgJ2HgzfbRmJ/9xmxXja0AyhAWerEEgtmpim+TTJTDdjt75vb4OtJQUUjnCNQROU0E6RLT9A9ECWT2g1EHSj61g6zQGFBa7dmJ51t5OWAEr69dBXAqW++U0aE4QpGvJ9W4stvYXu7Q8icX";
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+
+        // Trackables
+        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+        VuforiaTrackable relicTemplate = relicTrackables.get(0);
+        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
+        relicTrackables.activate();
+
+        telemetry.addData(">", "Vuforia Initialized");
+        telemetry.update();
+
+        sleep(200);
+        vuMark = RelicRecoveryVuMark.from(relicTemplate);
+        while (vuMark == RelicRecoveryVuMark.UNKNOWN) {
+            vuMark = RelicRecoveryVuMark.from(relicTemplate);
+        }
+
+        telemetry.addData(">", "View Mark %s found", vuMark);
+        telemetry.update();
         sleep(500);
     }
 
     public void driveToLocker() {
-        telemetry.addData(">", "Driving to Locker");
 
-        // drive to cryptolocker
-        telemetry.addData(">>", "Drive Left");
-        drive(90, 2);
-
-        // turn 180 degrees to face cryptolocker
-        telemetry.addData(">>", "Turn 180 deg");
-        turn(180);
-
-        // drive forward
-        telemetry.addData(">>", "Drive Forward");
-        drive(180, .5);
-        sleep(500);
     }
 
-    public void blockDeposit() {
-        telemetry.addData(">", "Deposit Block");
-
-        //set motor lift down
-        robot.motorLift.setPower(-0.50);
-        sleep(1000);
-
-        //open paddles
-        robot.servoLeftPaddle.setPosition(0);
-        robot.servoRightPaddle.setPosition(1);
-        sleep(500);
+    public void deposit() {
+        if (vuMark == RelicRecoveryVuMark.LEFT) {
+            drive(90, 1);
+        }
+        if (vuMark == RelicRecoveryVuMark.CENTER) {
+            drive(180, 1);
+        }
+        if (vuMark == RelicRecoveryVuMark.RIGHT) {
+            drive(270, 1);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,6 +229,10 @@ public class TestAuto extends LinearOpMode {
 
     /**
      * Drive "Straight"
+     * 180 deg: Front
+     * 0 deg: Back
+     * 90 deg: Left
+     * 270 deg: Right
      * @param dir direction of travel
      * @param holdTime time to hold
      */

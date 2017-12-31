@@ -33,10 +33,11 @@ import android.app.Activity;
 import android.graphics.Color;
 import android.view.View;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.AnalogSensor;
 
 /*
  *
@@ -52,11 +53,11 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 @TeleOp(name = "Sensor: MR Color", group = "Sensor")
-//@Disabled
+@Disabled
 public class SensorMRColor extends LinearOpMode {
 
-  ColorSensor colorSensor, colorSensor2;    // Hardware Device Object
-
+ ModernRoboticsI2cColorSensor colorSensor, colorSensor2;    // Hardware Device Object
+ AnalogSensor analogSensor, analogSensor2;
 
   @Override
   public void runOpMode() {
@@ -84,8 +85,8 @@ public class SensorMRColor extends LinearOpMode {
       boolean bLedOn2 = false;
 
     // get a reference to our ColorSensor object.
-      colorSensor = hardwareMap.colorSensor.get("color_beacon");
-      colorSensor2 = hardwareMap.colorSensor.get("color_beacon_left");
+      colorSensor = (ModernRoboticsI2cColorSensor)hardwareMap.colorSensor.get("color");
+      colorSensor2 = (ModernRoboticsI2cColorSensor)hardwareMap.colorSensor.get("color_line");
 
     // Set the LED in the beginning
     colorSensor.enableLed(bLedOn);
@@ -105,56 +106,72 @@ public class SensorMRColor extends LinearOpMode {
 
         // button is transitioning to a pressed state. So Toggle LED
         bLedOn = !bLedOn;
-        colorSensor.enableLed(bLedOn);
+        if (bLedOn) {
+            colorSensor = (ModernRoboticsI2cColorSensor)hardwareMap.colorSensor.get("color");
+            colorSensor.enableLed(bLedOn);
+        } else {
+            colorSensor.enableLed(bLedOn);
+            hardwareMap.colorSensor.remove("color");
+            colorSensor = null;
+        }
       }
 
       // update previous state variable.
       bPrevState = bCurrState;
+        if (colorSensor != null) {
+            // convert the RGB values to HSV values.
+            Color.RGBToHSV(colorSensor.red() * 8, colorSensor.green() * 8, colorSensor.blue() * 8, hsvValues);
 
-      // convert the RGB values to HSV values.
-      Color.RGBToHSV(colorSensor.red() * 8, colorSensor.green() * 8, colorSensor.blue() * 8, hsvValues);
-
-      // send the info back to driver station using telemetry function.
-      telemetry.addData("LED", bLedOn ? "On" : "Off");
-      telemetry.addData("Clear", colorSensor.alpha());
-      telemetry.addData("Red  ", colorSensor.red());
-      telemetry.addData("Green", colorSensor.green());
-      telemetry.addData("Blue ", colorSensor.blue());
-      telemetry.addData("Hue", hsvValues[0]);
-
+            // send the info back to driver station using telemetry function.
+            telemetry.addData("LED", bLedOn ? "On" : "Off");
+            telemetry.addData("Clear", colorSensor.alpha());
+            telemetry.addData("Red  ", colorSensor.red());
+            telemetry.addData("Green", colorSensor.green());
+            telemetry.addData("Blue ", colorSensor.blue());
+            telemetry.addData("Hue", hsvValues[0]);
+        }
         bCurrState2 = gamepad1.y;
 
         // check for button state transitions.
         if ((bCurrState2 == true) && (bCurrState2 != bPrevState2))  {
 
             // button is transitioning to a pressed state. So Toggle LED
-            bLedOn2 = !bLedOn2;
-            colorSensor2.enableLed(bLedOn2);
+            if (bLedOn) {
+                colorSensor2 = (ModernRoboticsI2cColorSensor)hardwareMap.colorSensor.get
+                        ("color_line");
+                colorSensor2.enableLed(bLedOn);
+            } else {
+                colorSensor2.enableLed(bLedOn);
+                hardwareMap.colorSensor.remove("color_line");
+                colorSensor2 = null;
+            };
         }
 
         // update previous state variable.
         bPrevState2 = bCurrState2;
 
-        // convert the RGB values to HSV values.
-        Color.RGBToHSV(colorSensor2.red() * 8, colorSensor2.green() * 8, colorSensor2.blue() * 8,
-                hsvValues);
+        if (colorSensor2 != null) {
+            // convert the RGB values to HSV values.
+            Color.RGBToHSV(colorSensor2.red() * 8, colorSensor2.green() * 8, colorSensor2.blue() * 8,
+                    hsvValues);
 
-        // send the info back to driver station using telemetry function.
-        telemetry.addData("2LED", bLedOn2 ? "On" : "Off");
-        telemetry.addData("2Clear", colorSensor2.alpha());
-        telemetry.addData("2Red  ", colorSensor2.red());
-        telemetry.addData("2Green", colorSensor2.green());
-        telemetry.addData("2Blue ", colorSensor2.blue());
-        telemetry.addData("2Hue", hsvValues[0]);
+            // send the info back to driver station using telemetry function.
+            telemetry.addData("2LED", bLedOn2 ? "On" : "Off");
+            telemetry.addData("2Clear", colorSensor2.alpha());
+            telemetry.addData("2Red  ", colorSensor2.red());
+            telemetry.addData("2Green", colorSensor2.green());
+            telemetry.addData("2Blue ", colorSensor2.blue());
+            telemetry.addData("2Hue", hsvValues[0]);
+        }
 
       // change the background color to match the color detected by the RGB sensor.
       // pass a reference to the hue, saturation, and value array as an argument
       // to the HSVToColor method.
-      relativeLayout.post(new Runnable() {
-        public void run() {
-          relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
-        }
-      });
+//      relativeLayout.post(new Runnable() {
+//        public void run() {
+//          relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
+//        }
+//      });
 
       telemetry.update();
     }

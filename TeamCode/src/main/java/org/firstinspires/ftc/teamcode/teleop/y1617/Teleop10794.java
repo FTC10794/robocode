@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 
 import org.firstinspires.ftc.teamcode.libs.y1617.Robot_1617;
 
-@TeleOp(name="10794 Teleop", group="Teleop")  // @Autonomous(...) is the other common choice
+@TeleOp(name="10794 Teleop", group="Teleop")  // @Auto(...) is the other common choice
 @Disabled
 public class Teleop10794 extends OpMode
 {
