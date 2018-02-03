@@ -4,9 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
@@ -17,27 +16,19 @@ import org.firstinspires.ftc.teamcode.libs.RobotHardwareValues;
 public abstract class Auto extends LinearOpMode {
     // Class Variables
     public Robot robot;
-    public Telemetry telemetry;
 
-    private MotorFunctions motorFunctions;
-    private RobotHardwareValues hardwareValues;
     private AllianceColor allianceColor = AllianceColor.UNKNOWN;
 
     // Function Variables
-    boolean isActive;
     private ElapsedTime     runtime                 = new ElapsedTime();
 
-    private double          posBlockSlide           = 0,
-            posRelicArm             = 0;
 
-    static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make it with an integer gyro
-    static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
+    private static final double     HEADING_THRESHOLD       = 1 ;      // As tight as we can make
+    // it with an integer gyro
+    private static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive,
+    // but also less stable
 
     // Vuforia Variables
-    /**
-     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
-     * localization engine.
-     */
     private VuforiaLocalizer vuforia;
     private RelicRecoveryVuMark vuMark;
 
@@ -45,13 +36,17 @@ public abstract class Auto extends LinearOpMode {
      * Constructor
      */
     public Auto() {
+
+    }
+
+    protected void instantiate() {
         robot = new Robot(hardwareMap);
-        telemetry.addData("Status", "Intializing Auto");
+        runtime.reset();
     }
 
     /**
      * This function should be overwritten in all subclasses.
-     * @throws InterruptedException
+     * @throws InterruptedException Interrupted
      */
     @Override
     public abstract void runOpMode() throws InterruptedException;
@@ -64,34 +59,43 @@ public abstract class Auto extends LinearOpMode {
 
     /**
      * Initialize Motor and Servo Positions
+     * .5 seconds
      */
-    public void initialize() {
+    protected void initialize() {
         telemetry.addData(">", "Initialized");
         telemetry.update();
 
         //servo motors initial positions
-        robot.servoLeftPaddle.setPosition(hardwareValues.servoLeftPaddleIn);
-        robot.servoRightPaddle.setPosition(hardwareValues.servoRightPaddleIn);
-        robot.servoRotator.setPosition(hardwareValues.servoRotatorCenter);
-        robot.servoSlide.setPosition(hardwareValues.servoSlideOneBlock);
+        robot.servoLeftPaddle.setPosition(RobotHardwareValues.servoLeftPaddleInit);
+        robot.servoRightPaddle.setPosition(RobotHardwareValues.servoRightPaddleInit);
+        robot.servoRotator.setPosition(RobotHardwareValues.servoRotatorCenter);
+        robot.servoSlide.setPosition(RobotHardwareValues.servoSlideOneBlock);
 
-        robot.servoRelicArm.setPosition(hardwareValues.servoRelicArmInit);
-        robot.servoRelicClaw.setPosition(hardwareValues.servoRelicClawClosed);
+//        robot.servoRelicArm.setPosition(RobotHardwareValues.servoRelicArmInit);
+//        robot.servoRelicClaw.setPosition(RobotHardWareValues.servoRelicClawClosed);
 
-        robot.servoJewelArm.setPosition(hardwareValues.servoJewelArmUp);
-        robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterCenter);
-        sleep(1000);
+        robot.servoJewelArm.setPosition(RobotHardwareValues.servoJewelArmUp);
+        robot.servoJewelPutter.setPosition(RobotHardwareValues.servoJewelPutterCenter);
+
+        robot.servoJackClaw.setPosition(RobotHardwareValues.servoJackClawInit);
+        robot.motorDeposit.setPower(.15);
+
+        sleep(500);
     }
 
     /**
      * Detect Alliance Color based off of platform color
      * @param numTries number of retries to use
+     * 1 second
      */
-    public void detectAlliance(int numTries) {
+    protected void detectAlliance(int numTries) {
+        telemetry.addData(">", "Detecting Platform Color");
         if (robot.sensorLine.blue() > robot.sensorLine.red()) {
             allianceColor = AllianceColor.BLUE;
+            telemetry.addData(">>", "Alliance Color Blue");
         } else if (robot.sensorLine.red() > robot.sensorLine.blue()) {
             allianceColor = AllianceColor.RED;
+            telemetry.addData(">>", "Alliance Color Red");
         } else {
             if (numTries < 3) {
                 detectAlliance(numTries++);
@@ -101,40 +105,32 @@ public abstract class Auto extends LinearOpMode {
     }
 
     /**
-     * Pick up the block (pre-loaded)
-     * FIXME for new paddles
+     * Open and lift to clear
      */
-    public void blockPickup() {
+    protected void blockPickupClear() {
         telemetry.addData(">", "Picking Up Block");
         telemetry.update();
 
-        // set wheels to pull in
-        robot.servoLeftWheel.setPower(hardwareValues.servoLeftWheelIn);
-        robot.servoRightWheel.setPower(hardwareValues.servoRightWheelIn);
-
-        //set paddles closed
-        robot.servoLeftPaddle.setPosition(hardwareValues.servoLeftPaddleIn);
-        robot.servoRightPaddle.setPosition(hardwareValues.servoRightPaddleIn);
-
-        //pause
+        //set motor lift up
+        robot.motorLift.setPower(-0.3);
         sleep(1000);
 
-        //set motor lift up
-        robot.motorLift.setPower(-0.50);
+        //set motor lift down
+        robot.motorLift.setPower(0);
         sleep(1000);
     }
 
     /**
      * Detect Jewel and remove from platform
      */
-    public void jewelDetection() {
+    protected void jewelDetection() {
         telemetry.addData(">", "Jewel Detection");
         telemetry.update();
 
         final int numTries = 3;
 
         //bring down the arm
-        robot.servoJewelArm.setPosition(hardwareValues.servoJewelArmDown);
+        robot.servoJewelArm.setPosition(RobotHardwareValues.servoJewelArmDown);
         sleep(1000);
 
         // color sensor
@@ -144,10 +140,10 @@ public abstract class Auto extends LinearOpMode {
                 telemetry.update();
 
                 if (allianceColor == AllianceColor.BLUE) {
-                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickBackward);
+                    robot.servoJewelPutter.setPosition(RobotHardwareValues.servoJewelPutterKickBackward);
                 }
                 if (allianceColor == AllianceColor.RED) {
-                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickForward);
+                    robot.servoJewelPutter.setPosition(RobotHardwareValues.servoJewelPutterKickForward);
                 }
                 break;
             } else if (robot.sensorColor.red() > robot.sensorColor.blue()) {
@@ -155,10 +151,10 @@ public abstract class Auto extends LinearOpMode {
                 telemetry.update();
 
                 if (allianceColor == AllianceColor.BLUE) {
-                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickForward);
+                    robot.servoJewelPutter.setPosition(RobotHardwareValues.servoJewelPutterKickForward);
                 }
                 if (allianceColor == AllianceColor.RED) {
-                    robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterKickBackward);
+                    robot.servoJewelPutter.setPosition(RobotHardwareValues.servoJewelPutterKickBackward);
                 }
                 break;
             } else {
@@ -167,12 +163,16 @@ public abstract class Auto extends LinearOpMode {
         }
         sleep(500);
         // Restore position
-        robot.servoJewelArm.setPosition(hardwareValues.servoJewelArmUp);
-        robot.servoJewelPutter.setPosition(hardwareValues.servoJewelPutterCenter);
-        sleep(500);
+        robot.servoJewelArm.setPosition(RobotHardwareValues.servoJewelArmCenter);
+        sleep(250);
+        robot.servoJewelPutter.setPosition(RobotHardwareValues.servoJewelPutterCenter);
+        sleep(1000);
     }
 
-    public void detectPictograph() {
+    /**
+     * Detect the Cryptobox
+     */
+    protected void detectPictograph() {
         telemetry.addData(">", "Initializing Vuforia");
         telemetry.update();
 
@@ -183,10 +183,10 @@ public abstract class Auto extends LinearOpMode {
         // Set parameters
         parameters.vuforiaLicenseKey = "AXh5WtX/////AAAAmSIZEeuzqUEUv7PT36AAH2VEOgEe3MPEoQzgGVFPetvXT/1xZSd7D0UTfabEvWunLFqDqZUA10XsGkpUisGD4SQoAU1Z0ccpr5zTyEoTkU0kRTVJfTZn73UTpqwrCmkfN+O0/8fPZxaz540oZw1ACSeBgJ6pOrC71tOGelpYLZ4th81YOde7hzk/TvLXqVSfXyRqtWcGyOMKMWBf4/HCepiD5Bix1GEgJ2HgzfbRmJ/9xmxXja0AyhAWerEEgtmpim+TTJTDdjt75vb4OtJQUUjnCNQROU0E6RLT9A9ECWT2g1EHSj61g6zQGFBa7dmJ51t5OWAEr69dBXAqW++U0aE4QpGvJ9W4stvYXu7Q8icX";
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+        vuforia = ClassFactory.createVuforiaLocalizer(parameters);
 
         // Trackables
-        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+        VuforiaTrackables relicTrackables = vuforia.loadTrackablesFromAsset("RelicVuMark");
         VuforiaTrackable relicTemplate = relicTrackables.get(0);
         relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
         relicTrackables.activate();
@@ -195,8 +195,12 @@ public abstract class Auto extends LinearOpMode {
         telemetry.update();
 
         sleep(200);
+        ElapsedTime hold = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        hold.reset();
         vuMark = RelicRecoveryVuMark.from(relicTemplate);
-        while (vuMark == RelicRecoveryVuMark.UNKNOWN) {
+        while (vuMark == RelicRecoveryVuMark.UNKNOWN && hold.time() < 5) {
             vuMark = RelicRecoveryVuMark.from(relicTemplate);
         }
 
@@ -205,20 +209,204 @@ public abstract class Auto extends LinearOpMode {
         sleep(500);
     }
 
-    public void driveToLocker() {
-
+    /**
+     * Drive and Park
+     */
+    protected void driveOffTo() {
+        telemetry.addData(">", "Driving off Platform");
+        if(allianceColor == AllianceColor.BLUE) {
+            //drive left
+            telemetry.addData(">> Alliance Color Blue", "Drive Left");
+            drive(90, 2.75);
+            telemetry.addData(">>", "Stable");
+        } else if (allianceColor == AllianceColor.RED) {
+            //drive right
+            telemetry.addData(">> Alliance Color Red", "Drive Right");
+            drive(270, 2.75);
+            telemetry.addData(">>", "Stable");
+        }
+        sleep(1000);
     }
 
-    public void deposit() {
+    /**
+     * Adjust the heading and straighten out the robot
+     */
+    protected void straighten(double dir, double expectedHeading) {
+//        adjustHeading(expectedHeading);
+        drive(180, .25, .25);
+        if(allianceColor == AllianceColor.BLUE) {
+            //drive left
+            telemetry.addData(">> Alliance Color Blue", "Straighten Left");
+            pointTurnHold(-dir, .5);
+        } else if (allianceColor == AllianceColor.RED) {
+            //drive right
+            telemetry.addData(">> Alliance Color Red", "Straighten Right");
+            pointTurnHold(dir, .5);
+        }
+    }
+
+
+    /**
+     * Drive to locker from corner (back)
+     * Gray: Clear > 65000 Red > 43000 Green > 48000 Blue > 46000 Hue 140
+     * Blue: Clear > 65000 Red > 40000 Green > 53000 Blue > 65000 Hue 203
+     * Red:  Clear > 65000 Red > 60000 Green > 41000 Blue > 40000 Hue 2
+     */
+    protected void driveToCornerLocker() {
+        telemetry.addData(">", "Driving to Corner Locker");
+        telemetry.addData(">>", allianceColor);
+//        float hsvValues[] = {0F, 0F, 0F};
+//        while (robot.sensorRange.getDistance(DistanceUnit.INCH) < 23) {
+//            telemetry.addData(">>>Current", robot.sensorRange.getDistance(DistanceUnit.INCH));
+//            driveWOHold(180, .5);
+//        }
+//        stopMotors();
+//
+//        telemetry.addData(">>", "Drive until color");
+//        if (allianceColor == AllianceColor.BLUE) {
+//            //drive left
+//            Color.RGBToHSV((robot.sensorLine.red() * 255) / 800, (robot.sensorLine.green() * 255) / 800,
+//                    (robot.sensorLine.blue() * 255) / 800, hsvValues);
+//            while (robot.sensorLine.blue() < 55000 || hsvValues[0] >= 199) {
+//                adjustDistance(5);
+//                driveWOHold(90,  .5);
+//            }
+//        } else
+//        if (allianceColor == AllianceColor.RED) {
+//            //drive right
+//            Color.RGBToHSV((robot.sensorLine.red() * 255) / 800, (robot.sensorLine.green() * 255) / 800,
+//                    (robot.sensorLine.blue() * 255) / 800, hsvValues);
+//            while (robot.sensorLine.red() > 55000 || hsvValues[0] < 50) {
+//                adjustDistance(5);
+//                driveWOHold(270,  .5);
+//            }
+//        }
+//        stopMotors();
+        determineColumn();
+    }
+
+    /**
+     * Drive to locker from side (front)
+     */
+    protected void driveToSideLocker() {
+        determineColumn();
+    }
+
+    /**
+     * Deposit block using BDS
+     */
+    protected void deposit() {
+        telemetry.addData(">> Depositing: ", "Drive Forward");
+        drive(180, .5, .3);
+        sleep(500);
+        telemetry.addData(">> Depositing: ", "Dump");
+        robot.motorDeposit.setPower(-.2);
+        sleep(250);
+        telemetry.addData(">> Depositing: ", "Drop");
+        robot.motorDeposit.setPower(0);
+        robot.servoJackClaw.setPosition(RobotHardwareValues.servoJackClawScore);
+        sleep(1500);
+    }
+
+    /**
+     * Parks Robot
+     */
+    protected void park() {
+        telemetry.addData(">> Parking: ", "Drive Forward/Backwards");
+        drive(0, .75, .5);
+        sleep(500);
+        drive(180, .75, .5);
+        sleep(500);
+        drive(0,.75, .5);
+        sleep(500);
+        drive(180, .25, .5);
+        stopMotors();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Module Helpers Functions
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Determine which column to travel to based on vuMark
+     */
+    private void determineColumn() {
         if (vuMark == RelicRecoveryVuMark.LEFT) {
+            determineLeft();
+        } else if (vuMark == RelicRecoveryVuMark.CENTER) {
+            determineCenter();
+        } else if (vuMark == RelicRecoveryVuMark.RIGHT) {
+            determineRight();
+        }
+        else {
+            determineCenter();
+        }
+    }
+    /**
+     * Determine location of left column
+     */
+    private void determineLeft() {
+        if(allianceColor == AllianceColor.BLUE) {
+            //drive left
             drive(90, 1);
+            telemetry.addData("> Straightening", "");
+            straighten(.25, .06);
+            drive(90, .95);
+        } else if (allianceColor == AllianceColor.RED) {
+            //drive right
+            telemetry.addData(">> Alliance Color Red", "Drive Right");
+            drive(270, 1.5);
+            telemetry.addData("> Straightening", "");
+            straighten(.25, .07);
+            drive(270, 2.35);
         }
-        if (vuMark == RelicRecoveryVuMark.CENTER) {
-            drive(180, 1);
+        sleep(1000);
+    }
+
+    /**
+     * Determine location of center column
+     */
+    private void determineCenter() {
+        if(allianceColor == AllianceColor.BLUE) {
+            //drive left
+            telemetry.addData(">> Alliance Color Blue", "Drive Left");
+            drive(90, 1.5);
+            telemetry.addData("> Straightening", "");
+            straighten(.25, .06);
+            drive(90, 1.05);
+        } else if (allianceColor == AllianceColor.RED) {
+            //drive right
+            telemetry.addData(">> Alliance Color Red", "Drive Right");
+            drive(270, 1.5);
+            telemetry.addData("> Straightening", "");
+            straighten(.25, .06);
+            drive(270, 1.75);
         }
-        if (vuMark == RelicRecoveryVuMark.RIGHT) {
-            drive(270, 1);
+        sleep(1000);
+    }
+
+    /**
+     * Determine location of right column
+     */
+    private void determineRight() {
+        if(allianceColor == AllianceColor.BLUE) {
+            //drive left
+            telemetry.addData(">> Alliance Color Blue", "Drive Left");
+            drive(90, 1.5);
+            telemetry.addData("> Straightening", "");
+            straighten(.25, .06);
+            drive(90, 1.4);
+        } else if (allianceColor == AllianceColor.RED) {
+            //drive right
+            telemetry.addData(">> Alliance Color Red", "Drive Right");
+            drive(270, 1.5);
+            telemetry.addData("> Straightening", "");
+            straighten(.25, .06);
+            drive(270, 1.1);
         }
+        sleep(1000);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,6 +414,34 @@ public abstract class Auto extends LinearOpMode {
     // Control Functions
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Drive "Straight"
+     * 180 deg: Front
+     * 0 deg: Back
+     * 90 deg: Left
+     * 270 deg: Right
+     * @param dir direction of travel
+     */
+    public void driveWOHold(double dir) {
+        double[] motorSpeed = holonomicAuto(1, dir, 0);
+        holonomicDrive(motorSpeed);
+    }
+
+    /**
+     * Drive "Straight"
+     * 180 deg: Front
+     * 0 deg: Back
+     * 90 deg: Left
+     * 270 deg: Right
+     * @param dir direction of travel
+     * @param speed speed of travel
+     *
+     */
+    public void driveWOHold(double dir, double speed) {
+        double[] motorSpeed = holonomicAuto(speed, dir, 0);
+        holonomicDrive(motorSpeed);
+    }
 
     /**
      * Drive "Straight"
@@ -242,27 +458,60 @@ public abstract class Auto extends LinearOpMode {
     }
 
     /**
-     *
+     * Drive "Straight" at a variable speed
+     * 180 deg: Front
+     * 0 deg: Back
+     * 90 deg: Left
+     * 270 deg: Right
+     * @param dir direction of travel
+     * @param holdTime time to hold
+     * @param speed speed to go
+     */
+    public void drive(double dir, double holdTime, double speed) {
+        double[] motorSpeed = holonomicAuto(speed, dir, 0);
+        holonomicHold(motorSpeed, holdTime);
+    }
+
+    /**
+     * Point turns
+     * Left turn, left wheels turn back, right wheels turn forward
+     * Right turn, right wheels turn back, left wheels turn forward
      * @param dir -1 or 1, direction of turn
      */
-    public void pointTurn(int dir) {
+    private void pointTurn(double dir) {
         robot.motorFrontLeft.setPower(dir);
         robot.motorBackLeft.setPower(dir);
         robot.motorFrontRight.setPower(-dir);
         robot.motorBackRight.setPower(-dir);
     }
 
+    private void pointTurnHold(double dir, double holdTime) {
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            robot.motorFrontLeft.setPower(dir);
+            robot.motorBackLeft.setPower(dir);
+            robot.motorFrontRight.setPower(-dir);
+            robot.motorBackRight.setPower(-dir);
+        }
+        stopMotors();
+    }
+
     /**
      * Turn the robot
      * @param angle angle to turn at
      */
+
     public void turn(double angle) {
+        /*
         // Calibrate the gyroscope
         robot.sensorGyro.calibrate();
         while(robot.sensorGyro.isCalibrating()) {
             telemetry.addData("> Calibrating:", "Gyro");
             telemetry.update();
-            sleep(50);
+            sleep(5);
         }
 
         double heading = robot.sensorGyro.getHeading();
@@ -303,6 +552,83 @@ public abstract class Auto extends LinearOpMode {
             // catch all case
             stopMotors();
         }
+        */
+    }
+
+    protected void turnLeft(double angle) {
+        double heading = robot.sensorGyro.getHeading();
+        robot.sensorGyro.calibrate();
+        while(robot.sensorGyro.isCalibrating()) {
+            telemetry.addData("> Calibrating:", "Gyro");
+            telemetry.update();
+            sleep(5);
+        }
+        if (angle == heading || angle == 360) {
+            stopMotors();
+            return;
+        }
+        if (heading > angle) {
+            while (robot.sensorGyro.getHeading() >= angle) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(-1);
+            }
+            stopMotors();
+        } else if (heading < angle) {
+            while (robot.sensorGyro.getHeading() >= 0) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(-1);
+            }
+            heading = 360;
+            while (heading >= angle) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(-1);
+                heading = robot.sensorGyro.getHeading();
+            }
+            stopMotors();
+        } else {
+            stopMotors();
+        }
+    }
+
+    protected void turnRight(double angle) {
+        double heading = robot.sensorGyro.getHeading();
+        robot.sensorGyro.calibrate();
+        while(robot.sensorGyro.isCalibrating()) {
+            telemetry.addData("> Calibrating:", "Gyro");
+            telemetry.update();
+            sleep(5);
+        }
+        if (angle == heading || angle == 360) {
+            stopMotors();
+            return;
+        }
+        if (heading < angle) {
+            while (robot.sensorGyro.getHeading() <= angle) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(1);
+            }
+            stopMotors();
+        } else if (heading > angle) {
+            while (robot.sensorGyro.getHeading() <= 358) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(1);
+            }
+            heading = 0;
+            while (heading <= angle) {
+                telemetry.addData(">> Heading", "%3d deg", robot.sensorGyro.getHeading());
+                telemetry.update();
+                pointTurn(1);
+                heading = robot.sensorGyro.getHeading();
+            }
+            stopMotors();
+        } else {
+            stopMotors();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,7 +644,7 @@ public abstract class Auto extends LinearOpMode {
      * @param dirSpeed Speed of directional change
      * @return double[] motor powers to assign
      */
-    public double[] holonomicAuto(double speed, double angle, double dirSpeed) {
+    private double[] holonomicAuto(double speed, double angle, double dirSpeed) {
         double[] motorSpeeds = {0, 0, 0, 0};
 
         double heading = Math.toRadians(angle) + ((Math.PI)/4);
@@ -331,11 +657,22 @@ public abstract class Auto extends LinearOpMode {
     }
 
     /**
+     * Drive
+     * @param speed motor speeds
+     */
+    private void holonomicDrive(double[] speed) {
+        robot.motorFrontLeft.setPower(speed[0]);
+        robot.motorFrontRight.setPower(speed[1]);
+        robot.motorBackLeft.setPower(speed[2]);
+        robot.motorBackRight.setPower(speed[3]);
+    }
+
+    /**
      * Hold speed
      * @param speed motor speeds
      * @param holdTime time to hold
      */
-    public void holonomicHold(double[] speed, double holdTime) {
+    private void holonomicHold(double[] speed, double holdTime) {
         ElapsedTime holdTimer = new ElapsedTime();
 
         // keep looping while we have time remaining.
@@ -348,20 +685,56 @@ public abstract class Auto extends LinearOpMode {
             robot.motorBackRight.setPower(speed[3]);
             telemetry.update();
         }
-
         stopMotors();
     }
 
     /**
      * Stop all motion
      */
-    public void stopMotors() {
+    private void stopMotors() {
         // Stop all motion;
+        telemetry.addData("Stop", "Motors");
         robot.motorFrontLeft.setPower(0);
         robot.motorFrontRight.setPower(0);
         robot.motorBackLeft.setPower(0);
         robot.motorBackRight.setPower(0);
     }
+
+    /**
+     * Adjust distance of robot when traveling constant distance
+     * @param expectedDistance expected distance
+     */
+    public void adjustDistance(double expectedDistance) {
+        double actualDistance = robot.sensorRange.getDistance(DistanceUnit.INCH);
+        if (actualDistance > expectedDistance + 1.5) {
+            drive(0, .5,.25);
+        } else if (actualDistance < expectedDistance - 1.5) {
+            drive(180, .5, .25);
+        }
+    }
+
+    /**
+     * Adjust heading of robot to expected angle
+     * @param expectedHeading expected angle
+     */
+    public void adjustHeading(double expectedHeading) {
+        double actualHeading = robot.sensorGyro.getHeading();
+        telemetry.addData(">> Heading: ", actualHeading);
+        if (actualHeading > expectedHeading) {
+            telemetry.addData(">> Turning: ", "Left");
+            turnLeft(expectedHeading);
+        } else if (actualHeading < expectedHeading) {
+            telemetry.addData(">> Turning: ", "Right");
+            turnRight(expectedHeading);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Helper Control Functions
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
 
     /**
      *  Method to spin on central axis to point in a new direction.
@@ -420,9 +793,9 @@ public abstract class Auto extends LinearOpMode {
      *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                  If a relative angle is required, add/subtract from current heading.
      * @param PCoeff    Proportional Gain coefficient
-     * @return
+     * @return onTarget
      */
-    boolean onHeading(double speed, double angle, double PCoeff) {
+    private boolean onHeading(double speed, double angle, double PCoeff) {
         double   error ;
         double   steer ;
         boolean  onTarget = false ;
@@ -464,7 +837,7 @@ public abstract class Auto extends LinearOpMode {
      * @return  error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
      *          +ve error means the robot should turn LEFT (CCW) to reduce error.
      */
-    public double getError(double targetAngle) {
+    private double getError(double targetAngle) {
 
         double robotError;
 
@@ -479,9 +852,9 @@ public abstract class Auto extends LinearOpMode {
      * returns desired steering force.  +/- 1 range.  +ve = steer left
      * @param error   Error angle in robot relative degrees
      * @param PCoeff  Proportional Gain Coefficient
-     * @return
+     * @return steer
      */
-    public double getSteer(double error, double PCoeff) {
+    private double getSteer(double error, double PCoeff) {
         return Range.clip(error * PCoeff, -1, 1);
     }
 

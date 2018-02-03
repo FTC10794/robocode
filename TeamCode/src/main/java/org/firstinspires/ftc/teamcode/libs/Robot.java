@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.libs;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -40,7 +41,7 @@ public class Robot {
     // References to the different motors and servos
     // DC Motors
     public DcMotor motorFrontLeft, motorFrontRight, motorBackLeft, motorBackRight;
-    public DcMotor motorSlide, motorLift;
+    public DcMotor motorSlide, motorLift, motorDeposit;
 
     // Servos
     public Servo servoRotator, servoSlide;
@@ -51,9 +52,12 @@ public class Robot {
 
     public Servo servoJewelArm, servoJewelPutter;
 
+    public Servo servoJackClaw;
+
     // References to sensors
     public ColorSensor sensorColor, sensorLine;
     public ModernRoboticsI2cGyro sensorGyro;
+    public ModernRoboticsI2cRangeSensor sensorRange;
 
     /**
      * Robot class constructor
@@ -80,6 +84,7 @@ public class Robot {
         motorLift = hardwareMap.dcMotor.get("lift");
         //// motorLift.setDirection(DcMotor.Direction.REVERSE);
         motorSlide = hardwareMap.dcMotor.get("slide");
+        motorDeposit = hardwareMap.dcMotor.get("deposit");
 
         // Initialize Servo Motors
         servoRotator = hardwareMap.servo.get("rotator");
@@ -95,10 +100,13 @@ public class Robot {
         servoJewelArm = hardwareMap.servo.get("jewel");
         servoJewelPutter = hardwareMap.servo.get("putter");
 
+        servoJackClaw = hardwareMap.servo.get("jack");
+
         // Initialize Sensors
         sensorColor = hardwareMap.colorSensor.get("color");
         sensorLine = hardwareMap.colorSensor.get("color_line");
         sensorGyro = (ModernRoboticsI2cGyro)hardwareMap.gyroSensor.get("gyro");
+        sensorRange = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range");
     }
 
     //any other hardware methods go here

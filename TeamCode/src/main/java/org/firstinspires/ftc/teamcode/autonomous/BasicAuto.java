@@ -1,38 +1,41 @@
-package org.firstinspires.ftc.teamcode.autonomous.y1718;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.robotcontroller.libs.MotorFunctions;
 import org.firstinspires.ftc.teamcode.autonomous.libs.Auto;
 
 /**
  * Basic Auto Class, 30 pts.
  * * Initializes hardware
  * * Detect Alliance Color via platform
- * * Picks up the block
- * * Detects and removes Jewel
+ * * Clears Block Pickup
+ * * Detects and removes Jewel (30pt)
  */
 
 @Autonomous(name="Basic Auto (30pt)", group="Auto")
 //@Disabled
 public class BasicAuto extends Auto {
-    // Class variables
-    private MotorFunctions motorFunctions;
+
+    public BasicAuto() {
+        super();
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
+        //Instantiate variables for super class
+        instantiate();
+
+        //Wait for start to be pressed
+        waitForStart();
         telemetry.addData("Status", "Running Op Mode");
 
-        motorFunctions = new MotorFunctions(-1, 1, 0, 1, .01);
-
-        waitForStart();
-
+        //Begin Autonomous Routine
         initialize();
         detectAlliance(0);
-        blockPickup();
+        blockPickupClear();
+
+        //Detect and Clear Jewel
         jewelDetection();
-        detectPictograph();
-        deposit();
 
         sleep(2500);
     }
