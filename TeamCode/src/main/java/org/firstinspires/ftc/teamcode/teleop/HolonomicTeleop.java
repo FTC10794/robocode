@@ -96,7 +96,7 @@ public class HolonomicTeleop extends OpMode {
 
         robot.motorLift.setPower(Range.clip(gamepad2.left_stick_y, -1, 1));
         robot.servoLeftWheel.setPower(Range.clip(gamepad2.right_stick_y, -1, 1));
-        robot.servoRightWheel.setPower(-1 * Range.clip(gamepad2.right_stick_y + 0.15, -1, 1));
+        robot.servoRightWheel.setPower(Range.clip(gamepad2.right_stick_y + 0.15, -1, 1));
 
         /**
          * Gamepad 1
@@ -188,7 +188,7 @@ public class HolonomicTeleop extends OpMode {
         }
         if (gamepad2.left_bumper) {
             // turn left
-            // robot.servoRotator.setPosition(RobotHardwareValues.servoRotatorLeft);
+//            robot.servoRotator.setPosition(RobotHardwareValues.servoRotatorLeft);
             robot.servoJackClaw.setPosition(0);
             robot.motorDeposit.setPower(-.5);
             sleep(100);
