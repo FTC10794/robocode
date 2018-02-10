@@ -95,6 +95,8 @@ public class HolonomicTeleop extends OpMode {
         robot.motorBackRight.setPower(motor_power[3]);
 
         robot.motorLift.setPower(Range.clip(gamepad2.left_stick_y, -1, 1));
+        robot.servoLeftWheel.setPower(Range.clip(gamepad2.right_stick_y, -1, 1));
+        robot.servoRightWheel.setPower(-1 * Range.clip(gamepad1.right_stick_y, -1, 1));
 
         /**
          * Gamepad 1
@@ -155,8 +157,8 @@ public class HolonomicTeleop extends OpMode {
         if (gamepad2.a) {
             // Paddles In
             // servos pull in
-            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelGentle); //this is wrong
-            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelGentle); //this is wrong
+//            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelGentle); //this is wrong
+//            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelGentle); //this is wrong
 
             // paddles in
             robot.servoLeftPaddle.setPosition(RobotHardwareValues.servoLeftPaddleIn);
@@ -172,8 +174,8 @@ public class HolonomicTeleop extends OpMode {
             robot.servoRightPaddle.setPosition(RobotHardwareValues.servoRightPaddleScoring);
 
             // servos kick out
-            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelOut);
-            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelOut);
+//            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelOut);
+//            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelOut);
         }
         if (gamepad2.b) {
             // Paddles Out
@@ -181,8 +183,8 @@ public class HolonomicTeleop extends OpMode {
             robot.servoRightPaddle.setPosition(RobotHardwareValues.servoRightPaddleOut);
 
             // set continuous rotation servo to intake
-            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelIn); //this one is right
-            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelIn); //this one is wrong
+//            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelIn); //this one is right
+//            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelIn); //this one is wrong
         }
         if (gamepad2.left_bumper) {
             // turn left
