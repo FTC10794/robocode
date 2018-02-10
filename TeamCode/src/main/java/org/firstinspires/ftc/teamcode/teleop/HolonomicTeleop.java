@@ -160,8 +160,8 @@ public class HolonomicTeleop extends OpMode {
         if (gamepad2.a) {
             // Paddles In
             // servos pull in
-//            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelGentle); //this is wrong
-//            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelGentle); //this is wrong
+            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelOff); //this is wrong
+            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelOff); //this is wrong
 
             // paddles in
             robot.servoLeftPaddle.setPosition(RobotHardwareValues.servoLeftPaddleIn);
