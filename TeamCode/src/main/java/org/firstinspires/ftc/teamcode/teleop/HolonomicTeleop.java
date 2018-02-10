@@ -95,8 +95,8 @@ public class HolonomicTeleop extends OpMode {
         robot.motorBackRight.setPower(motor_power[3]);
 
         robot.motorLift.setPower(Range.clip(gamepad2.left_stick_y, -1, 1));
-        robot.servoLeftWheel.setPower(Range.clip(gamepad2.right_stick_y, -1, 1));
-        robot.servoRightWheel.setPower(Range.clip(gamepad2.right_stick_y + 0.15, -1, 1));
+//        robot.servoLeftWheel.setPower(Range.clip(gamepad2.right_stick_y, -1, 1));
+//        robot.servoRightWheel.setPower(Range.clip(gamepad2.right_stick_y + 0.15, -1, 1));
 
         /**
          * Gamepad 1
@@ -135,7 +135,10 @@ public class HolonomicTeleop extends OpMode {
             robot.servoRelicArm.setPosition(posRelicArm);
         }
         if (gamepad1.left_bumper) {
-            // not in use
+            robot.servoJackClaw.setPosition(0);
+            robot.motorDeposit.setPower(-.5);
+            sleep(100);
+            robot.motorDeposit.setPower(0);
         }
         if (gamepad1.right_bumper) {
             // not in use
@@ -189,10 +192,8 @@ public class HolonomicTeleop extends OpMode {
         if (gamepad2.left_bumper) {
             // turn left
 //            robot.servoRotator.setPosition(RobotHardwareValues.servoRotatorLeft);
-            robot.servoJackClaw.setPosition(0);
-            robot.motorDeposit.setPower(-.5);
-            sleep(100);
-            robot.motorDeposit.setPower(0);
+            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelOff);
+            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelOff);
         }
         if (gamepad2.right_bumper) {
             // turn right
@@ -200,9 +201,13 @@ public class HolonomicTeleop extends OpMode {
         }
         if (gamepad2.left_trigger > 0.1) {
             // not in use
+            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelOut);
+            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelOut);
         }
         if (gamepad2.right_trigger > 0.1) {
             // not in use
+            robot.servoLeftWheel.setPower(RobotHardwareValues.servoLeftWheelIn);
+            robot.servoRightWheel.setPower(RobotHardwareValues.servoRightWheelIn);
         }
         if (gamepad2.dpad_up) {
             // two block position
